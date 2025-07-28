@@ -14,7 +14,7 @@ CREATE TABLE accounts (
 -- 2. ASSET_TYPES 
 CREATE TABLE asset_types (
   asset_type_id INT AUTO_INCREMENT PRIMARY KEY,
-  type_name VARCHAR(50) NOT NULL UNIQUE -- values: 'stock', 'bonds', 'cash', 'others'
+  type_name VARCHAR(50) NOT NULL UNIQUE -- values:('stock'), ('bonds'), ('cash'), ('others');
 );
 
 -- 3. ASSETS 
@@ -23,7 +23,7 @@ CREATE TABLE assets (
   account_id INT NOT NULL,
   asset_type_id INT NOT NULL,
   asset_name VARCHAR(100) NOT NULL,
-  current_quantity INT,                
+  current_quantity DECIMAL(20, 8),                
   current_price_per_unit DECIMAL(20, 8),
   purchase_price DECIMAL(20, 8),       -- Optional: first purchase
   average_price DECIMAL(20, 8),        -- Optional: average across transactions
@@ -38,7 +38,7 @@ CREATE TABLE assets (
 -- 4. TRANSACTION_TYPES 
 CREATE TABLE transaction_types (
   transaction_type_id INT AUTO_INCREMENT PRIMARY KEY,
-  type_name VARCHAR(50) NOT NULL UNIQUE -- values: 'buy', 'sell', etc.
+  type_name VARCHAR(50) NOT NULL UNIQUE -- values:('buy'), ('sell'), ('deposit'), ('withdraw'), ('dividend')
 );
 
 -- 5. TRANSACTIONS 
@@ -46,7 +46,7 @@ CREATE TABLE transactions (
   transaction_id INT AUTO_INCREMENT PRIMARY KEY,
   asset_id INT NOT NULL,
   transaction_type_id INT NOT NULL,
-  quantity INT,
+  quantity DECIMAL(20, 8),
   price_per_unit DECIMAL(20, 8),
   transaction_amount DECIMAL(20, 8) NOT NULL,
   transaction_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -56,7 +56,7 @@ CREATE TABLE transactions (
 );
 
 INSERT INTO accounts (account_name, a_password)
-VALUES ('admin', '123456');
+VALUES ('admin', '$2b$10$N9qo8uLOickgx2ZMRZo5i.ez5j6p7U0e4bY3Ue5K9E2K5Z5K5Z5K5');
 
 INSERT INTO asset_types (type_name)
 VALUES ('stock'), ('bonds'), ('cash'), ('others');
