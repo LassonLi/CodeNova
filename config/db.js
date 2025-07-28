@@ -59,45 +59,6 @@ async function buyAsset(accountId, assetName, assetTypeId, quantity, pricePerUni
     } finally {
       conn.release();
     }
-  }
-  
-
-async function sellAsset(accountId, assetName, quantity, pricePerUnit) {
-  const conn = await pool.getConnection();
-  try {
-    await conn.beginTransaction();
-
-    // Get asset
-    const [assets] = await conn.query(
-      `SELECT * FROM assets WHERE account_id = ? AND asset_name = ?`,
-      [accountId, assetName]
-    );
-    if (assets.length === 0) throw new Error('Asset not found');
-    const asset = assets[0];
-    if (asset.current_quantity < quantity) throw new Error('Not enough quantity to sell');
-
-    const newQuantity = asset.current_quantity - quantity;
-
-    await conn.query(
-      `UPDATE assets SET current_quantity = ?, total_amount = ? WHERE asset_id = ?`,
-      [newQuantity, newQuantity * asset.average_price, asset.asset_id]
-    );
-
-    // Insert transaction
-    await conn.query(
-      `INSERT INTO transactions (asset_id, transaction_type_id, quantity, price_per_unit, transaction_amount)
-       VALUES (?, (SELECT transaction_type_id FROM transaction_types WHERE type_name = 'sell'), ?, ?, ?)`,
-      [asset.asset_id, quantity, pricePerUnit, quantity * pricePerUnit]
-    );
-
-    await conn.commit();
-    return { success: true };
-  } catch (err) {
-    await conn.rollback();
-    throw err;
-  } finally {
-    conn.release();
-  }
 }
 
 async function sellAsset(accountId, assetName, quantity, pricePerUnit) {
