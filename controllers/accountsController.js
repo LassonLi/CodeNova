@@ -9,7 +9,10 @@ exports.createAccount = async (req, res) => {
       'INSERT INTO accounts (account_name, a_password) VALUES (?, ?)',
       [account_name, hashed],
       (err, results) => {
-        if (err) return res.status(500).json({ error: err });
+            if (err) {
+      console.error('Database query error:', err.message);
+      return res.status(500).json({ error: 'An internal server error occurred.' });
+    }
         res.status(201).json({ accountId: results.insertId });
       }
     );

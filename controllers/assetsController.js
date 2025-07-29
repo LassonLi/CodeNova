@@ -14,7 +14,10 @@ exports.createAsset = (req, res) => {
 exports.getAssetsByAccount = (req, res) => {
   const { account_id } = req.params;
   db.query('SELECT * FROM assets WHERE account_id = ?', [account_id], (err, results) => {
-    if (err) return res.status(500).json({ error: err });
+        if (err) {
+          console.error('Database query error:', err.message);
+          return res.status(500).json({ error: 'An internal server error occurred.' });
+        }
     res.json(results);
   });
 };
@@ -22,7 +25,10 @@ exports.getAssetsByAccount = (req, res) => {
 exports.updateAsset = (req, res) => {
   const { asset_id } = req.params;
   db.query('UPDATE assets SET ? WHERE asset_id = ?', [req.body, asset_id], (err, result) => {
-    if (err) return res.status(500).json({ error: err });
+        if (err) {
+      console.error('Database query error:', err.message);
+      return res.status(500).json({ error: 'An internal server error occurred.' });
+    }
     res.json({ updated: result.affectedRows });
   });
 };
@@ -30,7 +36,10 @@ exports.updateAsset = (req, res) => {
 exports.deleteAsset = (req, res) => {
   const { asset_id } = req.params;
   db.query('DELETE FROM assets WHERE asset_id = ?', [asset_id], (err, result) => {
-    if (err) return res.status(500).json({ error: err });
+        if (err) {
+      console.error('Database query error:', err.message);
+      return res.status(500).json({ error: 'An internal server error occurred.' });
+    }
     res.json({ deleted: result.affectedRows });
   });
 };
