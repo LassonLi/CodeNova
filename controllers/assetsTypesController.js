@@ -2,7 +2,10 @@ const db = require('../db');
 
 exports.listAssetTypes = (req, res) => {
   db.query('SELECT * FROM asset_types', (err, results) => {
-    if (err) return res.status(500).json({ error: err });
+        if (err) {
+          console.error('Database error in listAssetTypes:', err);
+          return res.status(500).json({ error: 'An internal server error occurred' });
+        }
     res.json(results);
   });
 };

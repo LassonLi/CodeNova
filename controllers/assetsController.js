@@ -3,7 +3,10 @@ const db = require('../db');
 exports.createAsset = (req, res) => {
   const data = req.body;
   db.query('INSERT INTO assets SET ?', data, (err, result) => {
-    if (err) return res.status(500).json({ error: err });
+        if (err) {
+          console.error('Error creating asset:', err.message);
+          return res.status(500).json({ error: 'An internal server error occurred' });
+        }
     res.status(201).json({ assetId: result.insertId });
   });
 };
