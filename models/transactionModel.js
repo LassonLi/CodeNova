@@ -1,4 +1,4 @@
-const pool = require('../db');
+const {pool} = require('../config/db');
 
 exports.getTransactionHistory = async (accountId) => {
   const conn = await pool.getConnection();
