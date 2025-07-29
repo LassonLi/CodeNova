@@ -20,7 +20,7 @@ CREATE TABLE asset_types (
 -- 3. ASSETS 
 CREATE TABLE assets (
   asset_id INT AUTO_INCREMENT PRIMARY KEY,
-  account_id INT NOT NULL,
+  account_id INT NOT NULL DEFAULT 1,
   asset_type_id INT NOT NULL,
   asset_name VARCHAR(100) NOT NULL,
   current_quantity DECIMAL(20, 8),                

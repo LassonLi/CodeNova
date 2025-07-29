@@ -9,25 +9,26 @@ const pool = mysql.createPool({
   connectionLimit: 10,
   queueLimit: 0
 });
+accountId = 1;
 
-async function buyAsset(accountId, assetName, assetTypeId, quantity, pricePerUnit) {
+async function buyAsset(assetName, assetTypeId, quantity, pricePerUnit) {
     const conn = await pool.getConnection();
     try {
       await conn.beginTransaction();
   
       // Check if asset exists
       const [assets] = await conn.query(
-        `SELECT * FROM assets WHERE account_id = ? AND asset_name = ?`,
-        [accountId, assetName]
+        `SELECT * FROM assets WHERE asset_name = ?`,
+        [assetName]
       );
   
       let assetId;
       if (assets.length === 0) {
         // Insert new asset
         const [result] = await conn.query(
-          `INSERT INTO assets (account_id, asset_type_id, asset_name, current_quantity, purchase_price, average_price, total_amount)
-           VALUES (?, ?, ?, ?, ?, ?, ?)`,
-          [accountId, assetTypeId, assetName, quantity, pricePerUnit, pricePerUnit, quantity * pricePerUnit]
+          `INSERT INTO assets (asset_type_id, asset_name, current_quantity, purchase_price, average_price, total_amount)
+           VALUES (?, ?, ?, ?, ?, ?)`,
+          [assetTypeId, assetName, quantity, pricePerUnit, pricePerUnit, quantity * pricePerUnit]
         );
         assetId = result.insertId;
       } else {
@@ -61,15 +62,15 @@ async function buyAsset(accountId, assetName, assetTypeId, quantity, pricePerUni
     }
 }
 
-async function sellAsset(accountId, assetName, quantity, pricePerUnit) {
+async function sellAsset(assetName, quantity, pricePerUnit) {
     const conn = await pool.getConnection();
     try {
       await conn.beginTransaction();
   
       // Get asset
       const [assets] = await conn.query(
-        `SELECT * FROM assets WHERE account_id = ? AND asset_name = ?`,
-        [accountId, assetName]
+        `SELECT * FROM assets WHERE asset_name = ?`,
+        [assetName]
       );
       if (assets.length === 0) throw new Error('Asset not found');
       const asset = assets[0];
@@ -99,7 +100,7 @@ async function sellAsset(accountId, assetName, quantity, pricePerUnit) {
     }
 }
 
-async function getTransactionHistory(accountId) {
+async function getTransactionHistory() {
     const conn = await pool.getConnection();
     try {
       const [rows] = await conn.query(
@@ -107,9 +108,7 @@ async function getTransactionHistory(accountId) {
          FROM transactions t
          JOIN assets a ON t.asset_id = a.asset_id
          JOIN transaction_types tt ON t.transaction_type_id = tt.transaction_type_id
-         WHERE a.account_id = ?
          ORDER BY t.transaction_time DESC`,
-        [accountId]
       );
       return rows;
     } finally {
@@ -117,7 +116,7 @@ async function getTransactionHistory(accountId) {
     }
 }
 
-async function getPortfolioSummary(accountId) {
+async function getPortfolioSummary() {
     const conn = await pool.getConnection();
     try {
       const [rows] = await conn.query(
@@ -125,12 +124,9 @@ async function getPortfolioSummary(accountId) {
           current_quantity * current_price_per_unit AS current_value,
           current_quantity * average_price AS invested_amount,
           (current_quantity * current_price_per_unit) - (current_quantity * average_price) AS gain_loss
-         FROM assets
-         WHERE account_id = ?`,
-        [accountId]
+         FROM assets`,
       );
   
-      // Optionally, sum totals
       const totalInvested = rows.reduce((sum, r) => sum + r.invested_amount, 0);
       const totalCurrentValue = rows.reduce((sum, r) => sum + r.current_value, 0);
       const totalGainLoss = totalCurrentValue - totalInvested;
@@ -141,7 +137,7 @@ async function getPortfolioSummary(accountId) {
     }
 }
 
-async function getPriceTrend(accountId, assetName) {
+async function getPriceTrend(assetName) {
     const conn = await pool.getConnection();
     try {
       const [rows] = await conn.query(
@@ -149,16 +145,12 @@ async function getPriceTrend(accountId, assetName) {
          FROM transactions t
          JOIN assets a ON t.asset_id = a.asset_id
          JOIN transaction_types tt ON t.transaction_type_id = tt.transaction_type_id
-         WHERE a.account_id = ? AND a.asset_name = ?
+         WHERE a.asset_name = ?
          ORDER BY t.transaction_time`,
-        [accountId, assetName]
+        [assetName]
       );
       return rows;
     } finally {
       conn.release();
     }
 }
-  
-  
-  
-
