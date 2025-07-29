@@ -10,10 +10,19 @@ const pool = mysql.createPool({
   queueLimit: 0
 });
 
-pool.connect((err)=>{
-    if (err) throw err;
-    console.log('Connected to database properties...');
-});
+
+async function Connection() {
+  try {
+    const conn = await pool.getConnection();
+    console.log('Connected to database "properties"...');
+    conn.release();
+  } catch (err) {
+    console.error('Database connection failed:', err);
+  }
+}
+
+module.exports = {pool, Connection};
+
 
 // accountId = 1;
 
