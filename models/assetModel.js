@@ -1,4 +1,4 @@
-const pool = require('../db');
+const {pool} = require('../config/db');
 
 exports.buyAsset = async (accountId, assetName, assetTypeId, quantity, pricePerUnit) => {
   const conn = await pool.getConnection();

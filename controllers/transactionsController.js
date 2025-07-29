@@ -1,8 +1,8 @@
-const db = require('../db');
+const {pool} = require('../config/db');
 
 exports.createTransaction = (req, res) => {
   const data = req.body;
-  db.query('INSERT INTO transactions SET ?', data, (err, result) => {
+  pool.query('INSERT INTO transactions SET ?', data, (err, result) => {
         if (err) {
       console.error('Database query error:', err.message);
       return res.status(500).json({ error: 'An internal server error occurred.' });
@@ -13,7 +13,7 @@ exports.createTransaction = (req, res) => {
 
 exports.getTransactionsByAsset = (req, res) => {
   const { asset_id } = req.params;
-  db.query('SELECT * FROM transactions WHERE asset_id = ?', [asset_id], (err, results) => {
+  pool.query('SELECT * FROM transactions WHERE asset_id = ?', [asset_id], (err, results) => {
         if (err) {
       console.error('Database query error:', err.message);
       return res.status(500).json({ error: 'An internal server error occurred.' });

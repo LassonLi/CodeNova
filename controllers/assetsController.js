@@ -1,8 +1,8 @@
-const db = require('../db');
+const {pool} = require('../config/db');
 
 exports.createAsset = (req, res) => {
   const data = req.body;
-  db.query('INSERT INTO assets SET ?', data, (err, result) => {
+  pool.query('INSERT INTO assets SET ?', data, (err, result) => {
         if (err) {
           console.error('Error creating asset:', err.message);
           return res.status(500).json({ error: 'An internal server error occurred' });
@@ -13,7 +13,7 @@ exports.createAsset = (req, res) => {
 
 exports.getAssetsByAccount = (req, res) => {
   const { account_id } = req.params;
-  db.query('SELECT * FROM assets WHERE account_id = ?', [account_id], (err, results) => {
+  pool.query('SELECT * FROM assets WHERE account_id = ?', [account_id], (err, results) => {
         if (err) {
           console.error('Database query error:', err.message);
           return res.status(500).json({ error: 'An internal server error occurred.' });
@@ -24,7 +24,7 @@ exports.getAssetsByAccount = (req, res) => {
 
 exports.updateAsset = (req, res) => {
   const { asset_id } = req.params;
-  db.query('UPDATE assets SET ? WHERE asset_id = ?', [req.body, asset_id], (err, result) => {
+  pool.query('UPDATE assets SET ? WHERE asset_id = ?', [req.body, asset_id], (err, result) => {
         if (err) {
       console.error('Database query error:', err.message);
       return res.status(500).json({ error: 'An internal server error occurred.' });
@@ -35,7 +35,7 @@ exports.updateAsset = (req, res) => {
 
 exports.deleteAsset = (req, res) => {
   const { asset_id } = req.params;
-  db.query('DELETE FROM assets WHERE asset_id = ?', [asset_id], (err, result) => {
+  pool.query('DELETE FROM assets WHERE asset_id = ?', [asset_id], (err, result) => {
         if (err) {
       console.error('Database query error:', err.message);
       return res.status(500).json({ error: 'An internal server error occurred.' });
