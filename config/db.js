@@ -12,7 +12,7 @@ const pool = mysql.createPool({
 async function Connection() {
     try {
       const conn = await pool.getConnection();
-      console.log(`Connected to database "${pool.options.database}"...`);
+      console.log('Connected to database "properties"...');  // safer
       conn.release();
     } catch (err) {
       console.error('Database connection failed:', err);
