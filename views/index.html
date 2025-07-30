@@ -432,7 +432,7 @@
      */
     async function fetchMarketData() {
         const container = document.getElementById('stock-list-container');
-        if (container) container.innerHTML = '<p>正在加载市场数据...</p>';
+        if (container) container.innerHTML = '<p>Loading market data...</p>';
 
         const apiUrl = 'http://localhost:3000/stockapi/price/';
 
@@ -447,7 +447,7 @@
                 code: stock.symbol,
                 price: stock.price,
                 // The API provides percentChange as a decimal, multiply by 100 for display
-                changePercent: stock.percentChange * 100 
+                changePercent: stock.percentChange 
             }));
 
             const newPriceMap = new Map();
@@ -478,7 +478,7 @@
         const timestampEl = document.querySelector('#market-watch-card .timestamp');
         if (timestampEl) {
             const now = new Date();
-            timestampEl.textContent = `最后更新于: ${now.toLocaleTimeString()}`;
+            timestampEl.textContent = `Last updated at: ${now.toLocaleTimeString()}`;
         }
     }
 
