@@ -1,5 +1,7 @@
 const cors = require('cors');
 const express = require('express');
+
+
 const stockApiRouter = require('./routes/stockApi');
 const assetsRouter = require('./routes/assets');
 const transactionsRouter = require('./routes/transactions');
@@ -10,7 +12,9 @@ const port = 3000;
 // Middleware
 app.use(express.json());
 
-app.use(cors()); // Enable CORS for all routes
+// 2. 在所有路由定义之前，使用 cors 中间件
+// 这会为你的整个应用启用跨域资源共享（CORS）
+app.use(cors());
 
 // Routes
 app.use('/stockApi', stockApiRouter); // Use the stockApi router

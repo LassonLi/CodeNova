@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -423,16 +423,66 @@
 
     // ===== Data and Rendering Functions =====
 
-    // --- Market Watch Data & Render ---
-    const mockStockData = [
-      { code: 'AAPL', price: 172.25, changePercent: 1.47 },
-      { code: 'GOOGL', price: 138.50, changePercent: -0.54 },
-      { code: 'TSLA', price: 180.01, changePercent: 2.15 },
-      { code: 'NVDA', price: 475.69, changePercent: -1.20 },
-      { code: 'META', price: 330.45, changePercent: 0.88 },
-      { code: 'MSFT', price: 410.55, changePercent: 0.95 },
-    ];
+    let assetPriceMap = new Map();
+    let latestStockTickers = []; // NEW: To store tickers from the API for the "Buy" modal
 
+    /**
+     * REVISED: Fetches market data from the local API.
+     * This function retrieves stock data, formats it, and then calls the render function.
+     */
+    async function fetchMarketData() {
+        const container = document.getElementById('stock-list-container');
+        if (container) container.innerHTML = '<p>Loading market data...</p>';
+
+        const apiUrl = 'http://localhost:3000/stockapi/price/';
+
+        try {
+            const response = await fetch(apiUrl);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            
+            const formattedData = data.map(stock => ({
+                code: stock.symbol,
+                price: stock.price,
+                // The API provides percentChange as a decimal, multiply by 100 for display
+                changePercent: stock.percentChange 
+            }));
+
+            const newPriceMap = new Map();
+            formattedData.forEach(stock => newPriceMap.set(stock.code, stock.price));
+
+            if (formattedData.length > 0) {
+                renderStockList(formattedData);
+                latestStockTickers = formattedData.map(stock => stock.code); // Update the global list of tickers
+                // Update the global asset price map for the transaction modal
+                assetPriceMap = new Map([...assetPriceMap, ...newPriceMap]);
+            } else {
+                if (container) container.innerHTML = '<p style="color: red;">未能加载任何市场数据，请稍后重试。</p>';
+            }
+            updateTimestamp();
+
+        } catch (error) {
+            console.error("获取市场数据时发生错误:", error);
+            if (container) {
+                container.innerHTML = `<p style="color: red;">无法加载市场数据。请确保您的本地API服务 (http://localhost:3000/stockapi/price/) 正在运行。</p>`;
+            }
+        }
+    }
+
+    /**
+     * Updates the timestamp in the Market Watch card.
+     */
+    function updateTimestamp() {
+        const timestampEl = document.querySelector('#market-watch-card .timestamp');
+        if (timestampEl) {
+            const now = new Date();
+            timestampEl.textContent = `Last updated at: ${now.toLocaleTimeString()}`;
+        }
+    }
+
+    // --- Market Watch Render ---
     function renderStockList(data) {
       const container = document.getElementById('stock-list-container');
       if (!container) return;
@@ -499,17 +549,24 @@
         nextButton.disabled = currentPage === totalPages;
     }
 
-    // ===== Modal Logic =====
+    // ===== Main Execution on Page Load =====
     document.addEventListener('DOMContentLoaded', () => {
-        // Initial Page Renders
-        renderStockList(mockStockData);
+        // --- Initial Page Renders ---
+        fetchMarketData();
         displayPage();
 
-        // Pagination Event Listeners
+        // --- Event Listeners ---
+        // Pagination
         prevButton.addEventListener('click', () => { if (currentPage > 1) { currentPage--; displayPage(); } });
         nextButton.addEventListener('click', () => { if (currentPage < Math.ceil(mockHistoryData.length / itemsPerPage)) { currentPage++; displayPage(); } });
+        
+        // Refresh button for Market Watch
+        const refreshButton = document.querySelector('#market-watch-card .refresh-button');
+        if (refreshButton) {
+            refreshButton.addEventListener('click', fetchMarketData);
+        }
 
-        // Modal DOM Elements
+        // --- Modal Logic ---
         const modal = document.getElementById('transaction-modal');
         const closeModalBtn = document.getElementById('modal-close-btn');
         const modalTitle = document.getElementById('modal-title');
@@ -523,15 +580,15 @@
 
         const getAssetDataFromCard = (cardId) => {
             const card = document.getElementById(cardId);
+            if (!card) return [];
             return Array.from(card.querySelectorAll('.asset-item')).map(item => {
                 const name = item.querySelector('span:first-child').textContent;
                 const valueText = item.querySelector('span:last-child').textContent.replace('$', '').replace(',', '');
                 return { name, value: parseFloat(valueText) };
             });
         };
-
-        const assetPriceMap = new Map();
-        mockStockData.forEach(stock => assetPriceMap.set(stock.code, stock.price));
+        
+        // Initialize price map with non-stock assets
         getAssetDataFromCard('bond-card').forEach(bond => assetPriceMap.set(bond.name, 100)); // Assume bonds have a par value/price of 100
         getAssetDataFromCard('cash-card').forEach(cash => assetPriceMap.set(cash.name, 1));
 
@@ -548,19 +605,23 @@
             modalTitle.textContent = `${action} ${assetType}`;
             assetSelect.innerHTML = '';
             let assetList = [];
+
             if (action === 'Sell' || action === 'Withdraw') {
-                assetList = getAssetDataFromCard(`${assetType.toLowerCase()}-assets-card`).map(a => a.name);
-            } else {
-                if (assetType === 'Stock') assetList = mockStockData.map(s => s.code);
-                if (assetType === 'Bond') assetList = ['US Treasury', 'Corp Bond A', 'Muni Bond B', 'Intl Bond C', 'High-Yield D']; // Full list for buying
+                 const cardId = assetType === 'Stock' ? 'stock-assets-card' : `${assetType.toLowerCase()}-card`;
+                 assetList = getAssetDataFromCard(cardId).map(a => a.name);
+            } else { // Buy or Deposit
+                if (assetType === 'Stock') assetList = latestStockTickers; // REVISED: Use dynamic list from API
+                if (assetType === 'Bond') assetList = ['US Treasury', 'Corp Bond A', 'Muni Bond B', 'Intl Bond C', 'High-Yield D'];
                 if (assetType === 'Cash') assetList = getAssetDataFromCard('cash-card').map(c => c.name);
             }
+
             assetList.forEach(name => {
                 const option = document.createElement('option');
                 option.value = name;
                 option.textContent = name;
                 assetSelect.appendChild(option);
             });
+
             if (assetType === 'Cash') {
                 assetSelectLabel.textContent = 'Account Name';
                 quantityInputLabel.textContent = 'Amount';
