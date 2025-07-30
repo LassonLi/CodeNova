@@ -1,27 +1,45 @@
 const assetModel = require('../models/assetModel');
 
+
 exports.updateAsset = async (req, res) => {
-  const { asset_id } = req.params;
-  const assetData = req.body;
+  const { asset_name } = req.params; // 从请求参数中获取资产名称
+  const {account_id, 
+    asset_type_id, 
+    current_quantity=null,
+    current_price_per_unit=null, 
+    purchase_price=null, 
+    average_price=null, 
+    total_amount=null, 
+    created_at=null, 
+    updated_at=null} = req.body;
+  const assetData = req.body; // 从请求体中获取资产数据
 
   try {
-    // 调用模型方法更新资产
-    const updatedRows = await assetModel.updateAsset(asset_id, assetData);
+    // 检查资产是否存在
+    const existingAsset = await assetModel.existAssetName(asset_name);
 
-    // 返回更新结果
-    res.json({ updated: updatedRows });
+    if (existingAsset.length > 0) {
+      // 如果资产存在，调用 updateAsset 方法
+      const updatedRows = await assetModel.updateAsset(existingAsset[0].asset_id, assetData);
+      res.json({ action: 'updated', updatedRows });
+    } else {
+      // 如果资产不存在，调用 postAsset 方法
+      const insertedId = await assetModel.postAsset(asset_name, assetData);
+      res.json({ action: 'inserted', insertedId });
+    }
   } catch (err) {
-    console.error('Error updating asset:', err.message);
+    console.error('Error updating or inserting asset:', err.message);
     res.status(500).json({ error: 'An internal server error occurred.' });
   }
 };
 
 exports.getAssetsByType = async (req, res) => {
-  const { account_id } = req.params;
+  const { type_name } = req.params;
 
   try {
     // 调用模型方法获取资产
-    const assets = await assetModel.getAssetsByAccount(account_id);
+    const asset_type_id = await assetModel.getAssetsTypeIdByType(type_name);
+    const assets = await assetModel.getAssetsByType(asset_type_id);
 
     // 返回资产列表
     res.json(assets);

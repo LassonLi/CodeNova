@@ -14,14 +14,65 @@ exports.updateAsset = async (assetId, assetData) => {
   }
 };
 
+// 查找该资产名是否存在
+exports.existAssetName = async (asset_name) => {
+  const conn = await pool.getConnection();
+  try {
+    const [results] = await conn.query('SELECT * FROM assets WHERE asset_name = ?', [asset_name]);
+    return results; // 返回查询结果
+  } catch (err) {
+    console.error('Error in existAssetName:', err.message);
+    throw err;
+  } finally {
+    conn.release();
+  }
+};
+
+// 
+exports.postAsset = async (asset_name, assetData) => {
+  const conn = await pool.getConnection();
+  try {
+    const [result] = await conn.query('INSERT INTO assets SET ?', { asset_name, ...assetData });
+    return result.insertId; // 返回插入的资产 ID
+  } catch (err) {
+    console.error('Error in postAsset:', err.message);
+    throw err;
+  } finally {
+    conn.release();
+  }
+};
+
 // 根据账户 ID 获取资产
-exports.getAssetsByAccount = async (accountId) => {
+exports.getAssetsByType = async (accountId) => {
   const conn = await pool.getConnection();
   try {
     const [results] = await conn.query('SELECT * FROM assets WHERE account_id = ?', [accountId]);
     return results; // 返回查询结果
   } catch (err) {
     console.error('Error in getAssetsByAccount:', err.message);
+    throw err;
+  } finally {
+    conn.release();
+  }
+};
+
+// 根据账户 asset_type_id 获取type_name
+exports.getAssetsTypeIdByType = async (typeName) => {
+  const conn = await pool.getConnection();
+  try {
+    // 查询 asset_types 表以获取 asset_type_id
+    const [results] = await conn.query(
+      'SELECT asset_type_id FROM asset_types WHERE type_name = ?',
+      [typeName]
+    );
+
+    if (results.length === 0) {
+      throw new Error(`Asset type "${typeName}" not found.`);
+    }
+
+    return results[0].asset_type_id; // 返回 asset_type_id
+  } catch (err) {
+    console.error('Error in getAssetsTypeIdByType:', err.message);
     throw err;
   } finally {
     conn.release();
