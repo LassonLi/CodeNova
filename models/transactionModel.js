@@ -63,9 +63,27 @@ const getTransactionsByAsset = async (asset_id) => {
   return results;
 };
 
+const getTransactionTypeId = async (transaction_type) => {
+  const [rows] = await pool.query(
+    'SELECT transaction_type_id FROM transaction_types WHERE type_name = ?',
+    [transaction_type]
+  );
+  return rows.length > 0 ? rows[0].transaction_type_id : null;
+};
+
+const getAssetIdByName = async (asset_name) => {
+  const [rows] = await pool.query(
+    'SELECT asset_id FROM assets WHERE asset_name = ?',
+    [asset_name]
+  );
+  return rows.length > 0 ? rows[0].asset_id : null;
+};
+
 module.exports = {
   getTransactionHistory: exports.getTransactionHistory,
   getPriceTrend: exports.getPriceTrend,
   createTransaction,
   getTransactionsByAsset,
+  getTransactionTypeId,
+  getAssetIdByName,
 };

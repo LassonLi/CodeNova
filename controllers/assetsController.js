@@ -12,7 +12,7 @@ exports.updateAsset = (req, res) => {
 };
 
 exports.getAssetsByType = async (req, res) => {
-  const { account_id } = req.params;
+  const { type_name } = req.params;
   let connection;
   try {
     // 获取数据库连接
