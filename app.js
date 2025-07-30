@@ -3,9 +3,7 @@ const cors = require('cors'); // 1. 在这里引入 cors 包
 const assetsTypesRouter = require('./routes/assetsTypes');
 const stockApiRouter = require('./routes/stockApi');
 const assetsRouter = require('./routes/assets');
-const transactionTypesRouter = require('./routes/transactionTypes');
 const transactionsRouter = require('./routes/transactions');
-const accountsRouter = require('./routes/accounts');
 
 const app = express();
 const port = 3000;
@@ -18,12 +16,10 @@ app.use(express.json());
 app.use(cors());
 
 // Routes
-app.use('/assetsTypes', assetsTypesRouter); // Use the assetsTypes router
 app.use('/stockApi', stockApiRouter); // Use the stockApi router
 app.use('/assets', assetsRouter); // Use the assets router
-app.use('/transactionTypes', transactionTypesRouter); // Use the transactionTypes router
 app.use('/transactions', transactionsRouter); // Use the transactions router
-app.use('/accounts', accountsRouter); // Use the accounts router
+
 
 // Start the server
 app.listen(port, () => {
