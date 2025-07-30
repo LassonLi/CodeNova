@@ -1,4 +1,17 @@
 const {pool} = require('../config/db');
+// models/transactionModel.js
+
+const getTransactions = async () => {
+  const conn = await pool.getConnection();
+  try {
+    const [rows] = await conn.query(
+      `SELECT * FROM transactions ORDER BY transaction_time DESC LIMIT 15`
+    );
+    return rows;
+  } finally {
+    conn.release();
+  }
+};
 
 exports.getTransactionHistory = async () => {
   const conn = await pool.getConnection();
@@ -116,4 +129,5 @@ module.exports = {
   getAssetIdByName,
   updateAssetForBuy,
   updateAssetForSell,
+  getTransactions,
 };

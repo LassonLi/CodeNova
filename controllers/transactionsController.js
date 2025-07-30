@@ -59,19 +59,15 @@ exports.getTransactionsByAsset = async (req, res) => {
   }
 };
 
-//exports.getTransactions = async (req, res) => {
-//  const { asset_id } = req.params;
-//
-//  // Validate required fields
-//  if (!asset_id) {
-//    return res.status(400).json({ error: 'Missing required field: asset_id.' });
-//  }
-//
-//  try {
-//    const transactions = await transactionModel.getTransactionsByAsset(asset_id);
-//    res.json(transactions);
-//  } catch (err) {
-//    console.error('Error fetching transactions by asset:', err.message);
-//    res.status(500).json({ error: 'An internal server error occurred.' });
-//  }
-//};
+exports.getTransactions = async (req, res) => {
+  try {
+    const transactions = await transactionModel.getTransactions({
+      limit: 15,
+      order: [['transaction_time', 'DESC']]
+    });
+    res.json(transactions);
+  } catch (error) {
+  console.log('Error fetching transactions:', error.message);
+    res.status(500).json({ error: 'Failed to fetch transactions' });
+  }
+};
