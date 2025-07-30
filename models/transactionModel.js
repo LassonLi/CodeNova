@@ -79,6 +79,34 @@ const getAssetIdByName = async (asset_name) => {
   return rows.length > 0 ? rows[0].asset_id : null;
 };
 
+const updateAssetForBuy = async (connection, asset_id, quantity, transaction_amount) => {
+  await connection.query(
+    `UPDATE assets 
+     SET current_quantity = current_quantity + ?, 
+         total_amount = total_amount + ?, 
+         average_price = (total_amount + ?) / (current_quantity + ?) 
+     WHERE asset_id = ?`,
+    [quantity, transaction_amount, transaction_amount, quantity, asset_id]
+  );
+};
+
+const updateAssetForSell = async (connection, asset_id, quantity, transaction_amount) => {
+  const [asset] = await connection.query(
+    'SELECT current_quantity FROM assets WHERE asset_id = ?',
+    [asset_id]
+  );
+  if (asset[0].current_quantity < quantity) {
+    throw new Error('Not enough quantity to sell.');
+  }
+  await connection.query(
+    `UPDATE assets 
+     SET current_quantity = current_quantity - ?, 
+         total_amount = total_amount - ? 
+     WHERE asset_id = ?`,
+    [quantity, transaction_amount, asset_id]
+  );
+};
+
 module.exports = {
   getTransactionHistory: exports.getTransactionHistory,
   getPriceTrend: exports.getPriceTrend,
@@ -86,4 +114,6 @@ module.exports = {
   getTransactionsByAsset,
   getTransactionTypeId,
   getAssetIdByName,
+  updateAssetForBuy,
+  updateAssetForSell,
 };

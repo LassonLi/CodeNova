@@ -3,7 +3,7 @@ const transactionModel = require('../models/transactionModel');
 exports.createTransaction = async (req, res) => {
   const {
     asset_name,
-    transaction_type,
+    transaction_type, 
     quantity = null,
     price_per_unit = null,
     transaction_amount,
