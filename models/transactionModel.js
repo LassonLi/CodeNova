@@ -1,5 +1,12 @@
 const {pool} = require('../config/db');
 
+//getTransactions(15)
+exports.getTransactions = async (limit) => {
+  const query = 'SELECT * FROM transactions LIMIT ?';
+  const [rows] = await db.execute(query, [limit]);
+  return rows;
+};
+
 exports.getTransactionHistory = async () => {
   const conn = await pool.getConnection();
   try {

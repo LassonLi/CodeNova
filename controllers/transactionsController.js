@@ -42,7 +42,10 @@ exports.createTransaction = async (req, res) => {
   }
 };
 
-exports.getTransactions = async (req, res) => {
+const transactionModel = require('../models/transactionModel');
+
+//getTransaction by asset_id
+exports.getTransaction = async (req, res) => {
   const { asset_id } = req.params;
 
   // Validate required fields
@@ -51,10 +54,21 @@ exports.getTransactions = async (req, res) => {
   }
 
   try {
-    const transactions = await transactionModel.getTransactionsByAsset(asset_id);
+    const transaction = await transactionModel.getTransactionsByAsset(asset_id);
+    res.json(transaction);
+  } catch (err) {
+    console.error('Error fetching transaction by asset:', err.message);
+    res.status(500).json({ error: 'An internal server error occurred.' });
+  }
+};
+
+//getTransactionsHistory(15)
+exports.getTransactions = async (req, res) => {
+  try {
+    const transactions = await transactionModel.getTransactions(15);
     res.json(transactions);
   } catch (err) {
-    console.error('Error fetching transactions by asset:', err.message);
+    console.error('Error fetching limited transactions:', err.message);
     res.status(500).json({ error: 'An internal server error occurred.' });
   }
 };
