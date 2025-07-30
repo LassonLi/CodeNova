@@ -1,6 +1,6 @@
 const {pool} = require('../config/db');
 
-exports.getTransactionHistory = async (accountId) => {
+exports.getTransactionHistory = async () => {
   const conn = await pool.getConnection();
   try {
     const [rows] = await conn.query(
@@ -8,9 +8,7 @@ exports.getTransactionHistory = async (accountId) => {
        FROM transactions t
        JOIN assets a ON t.asset_id = a.asset_id
        JOIN transaction_types tt ON t.transaction_type_id = tt.transaction_type_id
-       WHERE a.account_id = ?
        ORDER BY t.transaction_time DESC`,
-      [accountId]
     );
     return rows;
   } finally {
@@ -34,4 +32,40 @@ exports.getPriceTrend = async (accountId, assetName) => {
   } finally {
     conn.release();
   }
+};
+
+const createTransaction = async (transactionData) => {
+  const {
+    asset_id,
+    transaction_type_id,
+    quantity,
+    price_per_unit,
+    transaction_amount,
+    transaction_time,
+  } = transactionData;
+
+  const [result] = await pool.query(
+    `INSERT INTO transactions 
+    (asset_id, transaction_type_id, quantity, price_per_unit, transaction_amount, transaction_time) 
+    VALUES (?, ?, ?, ?, ?, ?)`,
+    [asset_id, transaction_type_id, quantity, price_per_unit, transaction_amount, transaction_time]
+  );
+
+  return result.insertId;
+};
+
+const getTransactionsByAsset = async (asset_id) => {
+  const [results] = await pool.query(
+    'SELECT * FROM transactions WHERE asset_id = ?',
+    [asset_id]
+  );
+
+  return results;
+};
+
+module.exports = {
+  getTransactionHistory: exports.getTransactionHistory,
+  getPriceTrend: exports.getPriceTrend,
+  createTransaction,
+  getTransactionsByAsset,
 };
