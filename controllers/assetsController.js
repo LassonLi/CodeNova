@@ -1,4 +1,5 @@
 const assetModel = require('../models/assetModel');
+const transactionsController = require('./transactionsController');
 
 exports.updateAsset = async (req, res) => {
   const { asset_name } = req.params; // 从请求参数中获取资产名称
@@ -36,18 +37,10 @@ exports.updateAsset = async (req, res) => {
         const db_current_quantity = parseFloat(existingAsset[0].current_quantity || 0);
         const db_total_amount = parseFloat(existingAsset[0].total_amount || 0);
 
-      console.log(transaction_type);
       if (quantity !== null) {
-        console.log(1)
         if (transaction_type == 'buy' || transaction_type == 'deposit') {
           current_quantity = db_current_quantity + quantity;
           total_amount = db_total_amount + transaction_amount;
-          console.log(transaction_amount);
-          console.log(quantity);
-          console.log(db_total_amount);
-          console.log(db_current_quantity);
-          console.log(total_amount);
-          console.log(current_quantity);
         } else {
           if (db_current_quantity < quantity) {
             return res.status(400).json({ error: 'Insufficient quantity for this sell or withdraw.' });
@@ -77,6 +70,23 @@ exports.updateAsset = async (req, res) => {
         total_amount.toFixed(8), // 格式化为 8 位小数
         transaction_time
       );
+
+      // 调用 createTransaction 方法记录交易
+      await transactionsController.createTransaction({
+        body: {
+          asset_name,
+          transaction_type,
+          quantity,
+          price_per_unit,
+          transaction_amount,
+          transaction_time,
+        },
+      }, {
+        status: () => ({
+          json: (data) => console.log('Transaction created:', data),
+        }),
+      });
+
       res.json({ action: 'updated', updatedRows });
     } else {
       // 如果资产不存在，插入新资产
@@ -95,6 +105,21 @@ exports.updateAsset = async (req, res) => {
         total_amount.toFixed(8), // 格式化为 8 位小数
         transaction_time
       );
+      // 调用 createTransaction 方法记录交易
+      await transactionsController.createTransaction({
+        body: {
+          asset_name,
+          transaction_type,
+          quantity,
+          price_per_unit,
+          transaction_amount,
+          transaction_time,
+        },
+      }, {
+        status: () => ({
+          json: (data) => console.log('Transaction created:', data),
+        }),
+      });
       res.json({ action: 'inserted', insertedId });
     }
   } catch (err) {
