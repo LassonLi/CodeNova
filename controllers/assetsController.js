@@ -1,32 +1,65 @@
-const {pool} = require('../config/db');
+const assetModel = require('../models/assetModel');
 
-exports.updateAsset = (req, res) => {
+exports.updateAsset = async (req, res) => {
   const { asset_id } = req.params;
-  pool.query('UPDATE assets SET ? WHERE asset_id = ?', [req.body, asset_id], (err, result) => {
-        if (err) {
-      console.error('Database query error:', err.message);
-      return res.status(500).json({ error: 'An internal server error occurred.' });
-    }
-    res.json({ updated: result.affectedRows });
-  });
+  const assetData = req.body;
+
+  try {
+    // 调用模型方法更新资产
+    const updatedRows = await assetModel.updateAsset(asset_id, assetData);
+
+    // 返回更新结果
+    res.json({ updated: updatedRows });
+  } catch (err) {
+    console.error('Error updating asset:', err.message);
+    res.status(500).json({ error: 'An internal server error occurred.' });
+  }
 };
 
 exports.getAssetsByType = async (req, res) => {
   const { account_id } = req.params;
-  let connection;
+
   try {
-    // 获取数据库连接
-    connection = await pool.getConnection();
-    const [results] = await connection.query('SELECT * FROM assets WHERE account_id = ?', [account_id]);
-    res.json(results);
+    // 调用模型方法获取资产
+    const assets = await assetModel.getAssetsByAccount(account_id);
+
+    // 返回资产列表
+    res.json(assets);
   } catch (err) {
-    console.error('Database query error in getAssetsByAccount:', err.message);
+    console.error('Error fetching assets by account:', err.message);
     res.status(500).json({ error: 'An internal server error occurred.' });
-  } finally {
-    // 确保连接被释放
-    if (connection) connection.release();
   }
 };
+
+// const {pool} = require('../config/db');
+
+// exports.updateAsset = (req, res) => {
+//   const { asset_id } = req.params;
+//   pool.query('UPDATE assets SET ? WHERE asset_id = ?', [req.body, asset_id], (err, result) => {
+//         if (err) {
+//       console.error('Database query error:', err.message);
+//       return res.status(500).json({ error: 'An internal server error occurred.' });
+//     }
+//     res.json({ updated: result.affectedRows });
+//   });
+// };
+
+// exports.getAssetsByType = async (req, res) => {
+//   const { account_id } = req.params;
+//   let connection;
+//   try {
+//     // 获取数据库连接
+//     connection = await pool.getConnection();
+//     const [results] = await connection.query('SELECT * FROM assets WHERE account_id = ?', [account_id]);
+//     res.json(results);
+//   } catch (err) {
+//     console.error('Database query error in getAssetsByAccount:', err.message);
+//     res.status(500).json({ error: 'An internal server error occurred.' });
+//   } finally {
+//     // 确保连接被释放
+//     if (connection) connection.release();
+//   }
+// };
 // exports.createAsset = async (req, res) => {
 //   // const data = req.body;
 //   const {
