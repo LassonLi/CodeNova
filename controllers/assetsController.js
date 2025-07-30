@@ -1,18 +1,18 @@
 const assetModel = require('../models/assetModel');
 
-
 exports.updateAsset = async (req, res) => {
   const { asset_name } = req.params; // 从请求参数中获取资产名称
-  const {account_id, 
-    asset_type_id, 
-    current_quantity=null,
-    current_price_per_unit=null, 
-    purchase_price=null, 
-    average_price=null, 
-    total_amount=null, 
-    created_at=null, 
-    updated_at=null} = req.body;
-  const assetData = req.body; // 从请求体中获取资产数据
+  const {
+    account_id,
+    asset_type_id,
+    current_quantity = null,
+    current_price_per_unit = null,
+    purchase_price = null,
+    average_price = null,
+    total_amount = null,
+    created_at = null,
+    updated_at = null,
+  } = req.body;
 
   try {
     // 检查资产是否存在
@@ -20,11 +20,31 @@ exports.updateAsset = async (req, res) => {
 
     if (existingAsset.length > 0) {
       // 如果资产存在，调用 updateAsset 方法
-      const updatedRows = await assetModel.updateAsset(existingAsset[0].asset_id, assetData);
+      const updatedRows = await assetModel.updateAsset(
+        existingAsset[0].asset_id,
+        account_id,
+        asset_type_id,
+        current_quantity,
+        current_price_per_unit,
+        purchase_price,
+        average_price,
+        total_amount,
+        updated_at
+      );
       res.json({ action: 'updated', updatedRows });
     } else {
       // 如果资产不存在，调用 postAsset 方法
-      const insertedId = await assetModel.postAsset(asset_name, assetData);
+      const insertedId = await assetModel.postAsset(
+        asset_name,
+        account_id,
+        asset_type_id,
+        current_quantity,
+        current_price_per_unit,
+        purchase_price,
+        average_price,
+        total_amount,
+        created_at
+      );
       res.json({ action: 'inserted', insertedId });
     }
   } catch (err) {

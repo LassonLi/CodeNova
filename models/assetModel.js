@@ -1,10 +1,42 @@
 const {pool} = require('../config/db');
 
 // 更新资产
-exports.updateAsset = async (assetId, assetData) => {
+exports.updateAsset = async (
+  assetId,
+  account_id,
+  asset_type_id,
+  current_quantity,
+  current_price_per_unit,
+  purchase_price,
+  average_price,
+  total_amount,
+  updated_at
+) => {
   const conn = await pool.getConnection();
   try {
-    const [result] = await conn.query('UPDATE assets SET ? WHERE asset_id = ?', [assetData, assetId]);
+    const [result] = await conn.query(
+      `UPDATE assets 
+       SET account_id = ?, 
+           asset_type_id = ?, 
+           current_quantity = ?, 
+           current_price_per_unit = ?, 
+           purchase_price = ?, 
+           average_price = ?, 
+           total_amount = ?, 
+           updated_at = ? 
+       WHERE asset_id = ?`,
+      [
+        account_id,
+        asset_type_id,
+        current_quantity,
+        current_price_per_unit,
+        purchase_price,
+        average_price,
+        total_amount,
+        updated_at,
+        assetId,
+      ]
+    );
     return result.affectedRows; // 返回受影响的行数
   } catch (err) {
     console.error('Error in updateAsset:', err.message);
@@ -29,10 +61,35 @@ exports.existAssetName = async (asset_name) => {
 };
 
 // 
-exports.postAsset = async (asset_name, assetData) => {
+exports.postAsset = async (
+  asset_name,
+  account_id,
+  asset_type_id,
+  current_quantity,
+  current_price_per_unit,
+  purchase_price,
+  average_price,
+  total_amount,
+  created_at
+) => {
   const conn = await pool.getConnection();
   try {
-    const [result] = await conn.query('INSERT INTO assets SET ?', { asset_name, ...assetData });
+    const [result] = await conn.query(
+      `INSERT INTO assets 
+       (asset_name, account_id, asset_type_id, current_quantity, current_price_per_unit, purchase_price, average_price, total_amount, created_at) 
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        asset_name,
+        account_id,
+        asset_type_id,
+        current_quantity,
+        current_price_per_unit,
+        purchase_price,
+        average_price,
+        total_amount,
+        created_at,
+      ]
+    );
     return result.insertId; // 返回插入的资产 ID
   } catch (err) {
     console.error('Error in postAsset:', err.message);
