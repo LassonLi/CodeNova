@@ -1,6 +1,7 @@
+const cors = require('cors');
 const express = require('express');
-const cors = require('cors'); // 1. 在这里引入 cors 包
-const assetsTypesRouter = require('./routes/assetsTypes');
+
+
 const stockApiRouter = require('./routes/stockApi');
 const assetsRouter = require('./routes/assets');
 const transactionsRouter = require('./routes/transactions');
