@@ -1,10 +1,7 @@
 const express = require('express');
-const assetsTypesRouter = require('./routes/assetsTypes');
 const stockApiRouter = require('./routes/stockApi');
 const assetsRouter = require('./routes/assets');
-const transactionTypesRouter = require('./routes/transactionTypes');
 const transactionsRouter = require('./routes/transactions');
-const accountsRouter = require('./routes/accounts');
 
 const app = express();
 const port = 3000;

@@ -2,20 +2,30 @@ const transactionModel = require('../models/transactionModel');
 
 exports.createTransaction = async (req, res) => {
   const {
-    asset_type,
-    transaction_type_id,
+    asset_name,
+    transaction_type,
     quantity = null,
     price_per_unit = null,
-    transaction_amount = null,
+    transaction_amount,
     transaction_time = new Date(),
   } = req.body;
 
   // Validate required fields
-  if (!asset_id || !transaction_type_id || !quantity || !price_per_unit || !transaction_amount) {
+  if (!asset_name || !transaction_type || !quantity || !price_per_unit || !transaction_amount) {
     return res.status(400).json({ error: 'Missing required fields.' });
   }
 
   try {
+    // Map transaction_type to transaction_type_id (assumes a helper function or mapping exists)
+    const transaction_type_id = await transactionModel.getTransactionTypeId(transaction_type);
+
+    // Get asset_id based on asset_name (assumes a helper function exists)
+    const asset_id = await transactionModel.getAssetIdByName(asset_name);
+
+    if (!transaction_type_id || !asset_id) {
+      return res.status(400).json({ error: 'Invalid asset_name or transaction_type.' });
+    }
+
     const transactionId = await transactionModel.createTransaction({
       asset_id,
       transaction_type_id,
