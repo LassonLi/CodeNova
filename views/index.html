@@ -418,13 +418,68 @@
     if (ctxPortfolio1) { new Chart(ctxPortfolio1, { type: 'pie', data: { labels: ['Stock', 'Bond', 'Cash'], datasets: [{ label: 'Portfolio', data: [14500, 11200, 11450], backgroundColor: ['#0047AB', '#FFA500', '#4DA6FF'] }] }, options: { responsive: true, plugins: { legend: { position: 'top' }, title: { display: true, text: 'Asset Class Distribution' } } } }); }
     const ctxPortfolio2 = document.getElementById('portfolioChart2');
     if (ctxPortfolio2) { new Chart(ctxPortfolio2, { type: 'pie', data: { labels: ['Tech', 'Finance', 'Consumer', 'Other'], datasets: [{ label: 'Stock Sectors', data: [65, 15, 10, 10], backgroundColor: ['#28a745', '#dc3545', '#ffc107', '#6c757d'] }] }, options: { responsive: true, plugins: { legend: { position: 'top' }, title: { display: true, text: 'Stock Sector Distribution (Sample)' } } } }); }
-    const ctx2 = document.getElementById('stockChart');
-    if (ctx2) { new Chart(ctx2, { type: 'line', data: { labels: ['Jan 1', 'Jan 5', 'Jan 10', 'Jan 15', 'Jan 20', 'Jan 25', 'Jan 31'], datasets: [{ label: 'Stock Value', data: [50, 90, 120, 160, 210, 190, 250], fill: true, backgroundColor: 'rgba(77, 166, 255, 0.1)', borderColor: '#0066ff', tension: 0.3 }] }, options: { scales: { y: { beginAtZero: true } }, plugins: { legend: { display: false } }, maintainAspectRatio: false } }); }
-
+    
     // ===== Data and Rendering Functions =====
 
     let assetPriceMap = new Map();
-    let latestStockTickers = []; // NEW: To store tickers from the API for the "Buy" modal
+    let latestStockTickers = [];
+    let stockChartInstance = null; // MODIFIED: To hold the stock chart instance
+
+    /**
+     * NEW: Fetches historical data for a given stock ticker and updates the main stock chart.
+     * @param {string} ticker The stock symbol to fetch history for.
+     */
+    async function fetchAndDrawStockHistory(ticker) {
+        if (!stockChartInstance || !ticker) {
+            console.error("Chart instance or ticker not available.");
+            return;
+        }
+
+        const stockChartCardTitle = document.querySelector('#stock-chart-card h2');
+        if (stockChartCardTitle) {
+            stockChartCardTitle.textContent = `Stock: ${ticker} (Loading...)`;
+        }
+
+        const historyApiUrl = `http://localhost:3000/stockapi/history/${ticker}`;
+
+        try {
+            const response = await fetch(historyApiUrl);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const historyData = await response.json();
+
+            // Process data for the chart, taking a sample for better readability if data is too large
+            const sampleData = historyData.length > 100 ? historyData.filter((_, i) => i % Math.floor(historyData.length / 100) === 0) : historyData;
+
+            const labels = sampleData.map(item =>
+                new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' })
+            );
+            const dataPoints = sampleData.map(item => item.close);
+
+            // Update the chart instance
+            stockChartInstance.data.labels = labels;
+            stockChartInstance.data.datasets[0].data = dataPoints;
+            stockChartInstance.data.datasets[0].label = `${ticker} Stock Value`;
+            stockChartInstance.update();
+
+            // Update card title
+            if (stockChartCardTitle) {
+                stockChartCardTitle.textContent = `Stock: ${ticker}`;
+            }
+
+        } catch (error) {
+            console.error(`Error fetching history for ${ticker}:`, error);
+            if (stockChartCardTitle) {
+                stockChartCardTitle.textContent = `Stock: ${ticker} (Error loading chart)`;
+            }
+            // Clear the chart on error
+            stockChartInstance.data.labels = [];
+            stockChartInstance.data.datasets[0].data = [];
+            stockChartInstance.update();
+        }
+    }
+
 
     /**
      * REVISED: Fetches market data from the local API.
@@ -446,7 +501,6 @@
             const formattedData = data.map(stock => ({
                 code: stock.symbol,
                 price: stock.price,
-                // The API provides percentChange as a decimal, multiply by 100 for display
                 changePercent: stock.percentChange 
             }));
 
@@ -455,9 +509,13 @@
 
             if (formattedData.length > 0) {
                 renderStockList(formattedData);
-                latestStockTickers = formattedData.map(stock => stock.code); // Update the global list of tickers
-                // Update the global asset price map for the transaction modal
+                latestStockTickers = formattedData.map(stock => stock.code);
                 assetPriceMap = new Map([...assetPriceMap, ...newPriceMap]);
+
+                // MODIFIED: Fetch and draw history for the first stock in the list
+                const firstTicker = formattedData[0].code;
+                fetchAndDrawStockHistory(firstTicker);
+
             } else {
                 if (container) container.innerHTML = '<p style="color: red;">未能加载任何市场数据，请稍后重试。</p>';
             }
@@ -466,7 +524,7 @@
         } catch (error) {
             console.error("获取市场数据时发生错误:", error);
             if (container) {
-                container.innerHTML = `<p style="color: red;">无法加载市场数据。请确保您的本地API服务 (http://localhost:3000/stockapi/price/) 正在运行。</p>`;
+                container.innerHTML = `<p style="color: red;">无法加载市场数据。请确保您的本地API服务正在运行。</p>`;
             }
         }
     }
@@ -552,6 +610,39 @@
     // ===== Main Execution on Page Load =====
     document.addEventListener('DOMContentLoaded', () => {
         // --- Initial Page Renders ---
+        
+        // MODIFIED: Initialize the stock chart and store its instance
+        const ctx2 = document.getElementById('stockChart');
+        if (ctx2) {
+            stockChartInstance = new Chart(ctx2, {
+                type: 'line',
+                data: {
+                    labels: [], // Start with empty labels
+                    datasets: [{
+                        label: 'Stock Value',
+                        data: [], // Start with empty data
+                        fill: true,
+                        backgroundColor: 'rgba(77, 166, 255, 0.1)',
+                        borderColor: '#0066ff',
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: { 
+                            beginAtZero: false // Better for stock charts not to start at 0
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
         fetchMarketData();
         displayPage();
 
@@ -589,7 +680,7 @@
         };
         
         // Initialize price map with non-stock assets
-        getAssetDataFromCard('bond-card').forEach(bond => assetPriceMap.set(bond.name, 100)); // Assume bonds have a par value/price of 100
+        getAssetDataFromCard('bond-card').forEach(bond => assetPriceMap.set(bond.name, 100));
         getAssetDataFromCard('cash-card').forEach(cash => assetPriceMap.set(cash.name, 1));
 
         const updateCalculation = () => {
@@ -610,7 +701,7 @@
                  const cardId = assetType === 'Stock' ? 'stock-assets-card' : `${assetType.toLowerCase()}-card`;
                  assetList = getAssetDataFromCard(cardId).map(a => a.name);
             } else { // Buy or Deposit
-                if (assetType === 'Stock') assetList = latestStockTickers; // REVISED: Use dynamic list from API
+                if (assetType === 'Stock') assetList = latestStockTickers;
                 if (assetType === 'Bond') assetList = ['US Treasury', 'Corp Bond A', 'Muni Bond B', 'Intl Bond C', 'High-Yield D'];
                 if (assetType === 'Cash') assetList = getAssetDataFromCard('cash-card').map(c => c.name);
             }
