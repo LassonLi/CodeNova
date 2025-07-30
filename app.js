@@ -1,3 +1,4 @@
+const cors = require('cors');
 const express = require('express');
 const stockApiRouter = require('./routes/stockApi');
 const assetsRouter = require('./routes/assets');
@@ -8,6 +9,8 @@ const port = 3000;
 
 // Middleware
 app.use(express.json());
+
+app.use(cors()); // Enable CORS for all routes
 
 // Routes
 app.use('/stockApi', stockApiRouter); // Use the stockApi router
