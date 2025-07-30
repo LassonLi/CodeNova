@@ -13,12 +13,10 @@ const port = 3000;
 app.use(express.json());
 
 // Routes
-app.use('/assetsTypes', assetsTypesRouter); // Use the assetsTypes router
 app.use('/stockApi', stockApiRouter); // Use the stockApi router
 app.use('/assets', assetsRouter); // Use the assets router
-app.use('/transactionTypes', transactionTypesRouter); // Use the transactionTypes router
 app.use('/transactions', transactionsRouter); // Use the transactions router
-app.use('/accounts', accountsRouter); // Use the accounts router
+
 
 // Start the server
 app.listen(port, () => {
