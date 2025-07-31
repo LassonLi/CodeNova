@@ -4,7 +4,7 @@ const controller = require('../controllers/assetsController');
 
 /**
  * @swagger
- * /assets/{type_name}:
+ * /assets/type/{type_name}:
  *   get:
  *     summary: Get assets by type
  *     tags: [Assets]
@@ -25,18 +25,34 @@ const controller = require('../controllers/assetsController');
  *               items:
  *                 type: object
  *                 properties:
- *                   asset_name:
+ *                   asset_name: 
  *                     type: string
  *                   current_quantity:
- *                     type: number
+ *                     type: int
+ *                   current_price_per_unit:
+ *                     type: int
+ *                   purchase_price:
+ *                     type: int
+ *                   average_price:
+ *                     type: int
  *                   total_amount:
- *                     type: number
+ *                     type: int
+ *                   created_at:
+ *                     type: string
+ *                     format: date-time
+ *                   updated_at:
+ *                     type: string
+ *                     format: date-time
+ *                   asset_type_name:
+ *                     type: string
+ *                   interest_rate:
+ *                     type: float
  *       400:
  *         description: Invalid asset type
  *       500:
  *         description: Internal server error
  */
-router.get('/:type_name', controller.getAssetsByType);
+router.get('/type/:type_name', controller.getAssetsByType);
 
 /**
  * @swagger
