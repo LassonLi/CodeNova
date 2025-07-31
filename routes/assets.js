@@ -106,4 +106,6 @@ router.get('/type/:type_name', controller.getAssetsByType);
  */
 router.put('/:asset_name', controller.updateAsset);
 
+router.get('/:asset_name', controller.getAssetsByName);
+
 module.exports = router;

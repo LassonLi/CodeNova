@@ -198,6 +198,63 @@ exports.getAssetsByType = async (req, res) => {
   }
 };
 
+exports.getAssetsByName = async (req, res) => {
+  const { asset_name } = req.params;
+
+  try {
+    // 检查资产是否存在
+    const asset = await assetModel.getAssetByName(asset_name);
+
+    if (!asset) {
+      return res.status(404).json({ error: `Asset "${asset_name}" not found.` });
+    }
+
+    // 模拟调用 yahooApiController.getStockPrice 方法
+    const mockReq = { params: { symbol: asset.asset_name } };
+    let yahooResponseData;
+
+    // 模拟 res 对象
+    const mockRes = {
+      json: (data) => {
+        yahooResponseData = data; // 捕获返回的 JSON 数据
+      },
+      status: (statusCode) => ({
+        json: (data) => {
+          throw new Error(`Failed to fetch price for ${asset.asset_name}: ${data.error}`);
+        },
+      }),
+    };
+
+    // 调用 yahooApiController.getStockPrice
+    await yahooApiController.getStockPrice(mockReq, mockRes);
+
+    // 从响应中提取价格
+    const current_price_per_unit = yahooResponseData?.price || null;
+
+    // 计算利率 interest_rate
+    const interest_rate = asset.total_amount
+      ? ((asset.current_quantity * current_price_per_unit - asset.total_amount) / asset.total_amount).toFixed(8)
+      : null;
+
+    // 返回资产信息
+    res.json({
+      asset_name: asset.asset_name,
+      current_quantity: asset.current_quantity,
+      current_price_per_unit: current_price_per_unit ? current_price_per_unit.toFixed(8) : null,
+      purchase_price: asset.purchase_price,
+      average_price: asset.average_price,
+      total_amount: asset.total_amount,
+      created_at: asset.created_at,
+      updated_at: asset.updated_at,
+      asset_type_name: asset.asset_type_name,
+      interest_rate,
+    });
+  } catch (err) {
+    console.error('Error fetching asset by name:', err.message);
+    res.status(500).json({ error: 'An internal server error occurred.' });
+  }
+};
+
 // exports.getAssetsByType = async (req, res) => {
 //   const { type_name } = req.params;
 // // 返回的字段
