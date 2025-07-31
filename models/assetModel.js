@@ -7,7 +7,6 @@ exports.updateAsset = async (
   asset_type_id,
   current_quantity,
   current_price_per_unit,
-  purchase_price,
   average_price,
   total_amount,
   updated_at
@@ -20,7 +19,6 @@ exports.updateAsset = async (
            asset_type_id = ?, 
            current_quantity = ?, 
            current_price_per_unit = ?, 
-           purchase_price = ?, 
            average_price = ?, 
            total_amount = ?, 
            updated_at = ? 
@@ -30,7 +28,6 @@ exports.updateAsset = async (
         asset_type_id,
         current_quantity,
         current_price_per_unit,
-        purchase_price,
         average_price,
         total_amount,
         updated_at,
@@ -60,7 +57,6 @@ exports.existAssetName = async (asset_name) => {
   }
 };
 
-// 
 exports.postAsset = async (
   asset_name,
   account_id,
@@ -103,6 +99,7 @@ exports.postAsset = async (
 exports.getAssetsByType = async (accountId) => {
   const conn = await pool.getConnection();
   try {
+    // 改成 join的语法，内容有
     const [results] = await conn.query('SELECT * FROM assets WHERE account_id = ?', [accountId]);
     return results; // 返回查询结果
   } catch (err) {
@@ -117,6 +114,14 @@ exports.getAssetsByType = async (accountId) => {
 exports.getAssetsTypeIdByType = async (typeName) => {
   const conn = await pool.getConnection();
   try {
+    // "asset_name": "META",
+    // "current_quantity"
+    // "current_price_per_unit": "100.00000000",
+    // "purchase_price": "10.00000000",
+    // "average_price": null,
+    // "total_amount": null,
+    // "updated by":
+    // "interest_rate": // 返回利率，自己想计算方法
     // 查询 asset_types 表以获取 asset_type_id
     const [results] = await conn.query(
       'SELECT asset_type_id FROM asset_types WHERE type_name = ?',
