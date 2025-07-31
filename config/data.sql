@@ -41,6 +41,9 @@ INSERT INTO transactions (asset_id, transaction_type_id, quantity, price_per_uni
 VALUES (3, 1, 110, 9.09, 1000.70);
 
 INSERT INTO transactions (asset_id, transaction_type_id, quantity, price_per_unit, transaction_amount)
+VALUES (3, 1, 110, 9.08, 1000.70);
+
+INSERT INTO transactions (asset_id, transaction_type_id, quantity, price_per_unit, transaction_amount)
 VALUES (4, 2, 120, 8.33, 1000.80);
 
 INSERT INTO transactions (asset_id, transaction_type_id, quantity, price_per_unit, transaction_amount)
