@@ -5,7 +5,16 @@ purchase_price, average_price, total_amount
 ) VALUES
 (1, 1, 'AAPL', 50.00, 195.32, 190.00, 192.50, 9625.00),
 (1, 1, 'GOOGL', 10.00, 2842.10, 2700.00, 2771.05, 27710.50),
-(1, 2, 'BTC', 0.25, 29650.20, 29000.00, 29325.10, 7331.28);
+(1, 1, 'TSLA', 20.00, 720.50, 700.00, 710.25, 14410.00),
+(1, 1, 'AMZN', 5.00, 3400.00, 3300.00, 3350.00, 16750.00),
+(1, 1, 'BTC', 0.5, 45000.00, 40000.00, 42500.00, 21250.00),
+(1, 1, 'ETH', 1.0, 3000.00, 2500.00, 2750.00, 2750.00);
+INSERT INTO assets (
+account_id, asset_type_id, asset_name, total_amount
+) VALUES
+(1, 3, 'DEFAULT', 9625.00),
+(1, 3, 'CASH1', 27710.50),
+(1, 3, 'CNB', 14410.00);
 -------------------------
 INSERT INTO transactions (asset_id, transaction_type_id, quantity, price_per_unit, transaction_amount)
 VALUES (1, 1, 100, 10.00, 1000.00);
@@ -17,7 +26,7 @@ INSERT INTO transactions (asset_id, transaction_type_id, quantity, price_per_uni
 VALUES (3, 3, 200, 5.00, 1000.00);
 
 INSERT INTO transactions (asset_id, transaction_type_id, quantity, price_per_unit, transaction_amount)
-VALUES (4, 4, 25, 40.00, 1000.00);
+VALUES (3, 4, 25, 40.00, 1000.00);
 
 INSERT INTO transactions (asset_id, transaction_type_id, quantity, price_per_unit, transaction_amount)
 VALUES (1, 5, 10, 100.00, 1000.00);
@@ -29,7 +38,7 @@ INSERT INTO transactions (asset_id, transaction_type_id, quantity, price_per_uni
 VALUES (3, 2, 70, 14.29, 1000.30);
 
 INSERT INTO transactions (asset_id, transaction_type_id, quantity, price_per_unit, transaction_amount)
-VALUES (4, 3, 80, 12.50, 1000.40);
+VALUES (2, 3, 80, 12.50, 1000.40);
 
 INSERT INTO transactions (asset_id, transaction_type_id, quantity, price_per_unit, transaction_amount)
 VALUES (1, 4, 90, 11.11, 1000.50);
@@ -44,7 +53,7 @@ INSERT INTO transactions (asset_id, transaction_type_id, quantity, price_per_uni
 VALUES (3, 1, 110, 9.08, 1000.70);
 
 INSERT INTO transactions (asset_id, transaction_type_id, quantity, price_per_unit, transaction_amount)
-VALUES (4, 2, 120, 8.33, 1000.80);
+VALUES (1, 2, 120, 8.33, 1000.80);
 
 INSERT INTO transactions (asset_id, transaction_type_id, quantity, price_per_unit, transaction_amount)
 VALUES (1, 3, 130, 7.69, 1000.90);
