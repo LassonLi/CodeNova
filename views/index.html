@@ -12,6 +12,26 @@
       margin: 0;
       padding: 0;
     }
+    /* ADDED: Styles for new elements */
+    .main-title {
+      text-align: center;
+      color: #0d274d;
+      margin-top: 20px;
+      margin-bottom: 0;
+      font-size: 36px;
+    }
+    .footer-band {
+      background-color: #0d274d;
+      color: #f0f0f0;
+      text-align: center;
+      padding: 20px 0;
+      width: 100%;
+      margin-top: 40px;
+    }
+    .footer-band p {
+      margin: 0;
+      font-size: 14px;
+    }
     .container {
       max-width: 1600px;
       margin: 0 auto;
@@ -397,11 +417,16 @@
   </style>
 </head>
 <body>
+  <!-- ADDED: Main Title -->
+
+
   <div class="container">
     <div class="header">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Rocket_icon.svg/2048px-Rocket_icon.svg.png" alt="logo" class="logo" />
+      <img src="logo.jpg" alt="logo" class="logo" />
       <div class="logo-text">CODENOVA</div>
     </div>
+    <h1 class="main-title">Portfolio Panel</h1>
+    <h1 class="main-title"> </h1>
     <div class="dashboard">
       <!-- Cards -->
       <div class="card" id="networth-card"><h2>Networth</h2><p>$37,150</p></div>
@@ -879,5 +904,10 @@
         confirmBtn.addEventListener('click', handleTransaction);
     });
   </script>
+
+  <!-- ADDED: Footer Band -->
+  <footer class="footer-band">
+    <p>&copy; 2025 Codenova Financial Dashboard. All Rights Reserved.</p>
+  </footer>
 </body>
 </html>
