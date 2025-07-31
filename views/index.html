@@ -385,7 +385,7 @@
 <body>
   <div class="container">
     <div class="header">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Rocket_icon.svg/2048px-Rocket_icon.svg.png" alt="logo" class="logo" />
+      <img src="logo.jpg" alt="logo" class="logo" />
       <div class="logo-text">CODENOVA</div>
     </div>
     <div class="dashboard">
@@ -524,7 +524,7 @@
         } catch (error) {
             console.error("获取市场数据时发生错误:", error);
             if (container) {
-                container.innerHTML = `<p style="color: red;">无法加载市场数据。请确保您的本地API服务正在运行。</p>`;
+                container.innerHTML = `<p style="color: red;">Please Refresh Again</p>`;
             }
         }
     }
