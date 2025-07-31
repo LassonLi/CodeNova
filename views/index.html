@@ -152,7 +152,6 @@
       overflow-y: auto;
     }
     
-    /* MODIFIED: Added cursor and hover effect */
     .stock-info-item {
       display: flex;
       justify-content: space-between;
@@ -223,14 +222,16 @@
     }
     .portfolio-chart-wrapper {
       flex: 1;
-      max-width: 45%;
+      max-width: 48%; /* Adjusted for better spacing */
+      position: relative;
+      min-height: 300px; /* Ensure wrapper has height */
     }
     .chart-container-large {
         flex-grow: 1;
         position: relative;
         min-height: 350px;
     }
-    .chart-container-large canvas {
+    .chart-container-large canvas, .portfolio-chart-wrapper canvas {
         position: absolute;
         top: 0;
         left: 0;
@@ -401,7 +402,14 @@
       <div class="card" id="bond-card"><h2>Bond</h2><div class="asset-list-container"><div class="asset-item"><span>US Treasury</span><span>$4,200</span></div><div class="asset-item"><span>Corp Bond A</span><span>$2,500</span></div><div class="asset-item"><span>Muni Bond B</span><span>$1,800</span></div><div class="asset-item"><span>Intl Bond C</span><span>$1,500</span></div><div class="asset-item"><span>High-Yield D</span><span>$1,200</span></div></div><div class="card-actions"><button class="card-action-button">+ Buy</button><button class="card-action-button">- Sell</button></div></div>
       <div class="card" id="cash-card"><h2>Cash</h2><div class="asset-list-container"><div class="asset-item"><span>USD Account</span><span>$3,800</span></div><div class="asset-item"><span>Money Market</span><span>$2,200</span></div><div class="asset-item"><span>EUR Account</span><span>$1,500</span></div><div class="asset-item"><span>GBP Account</span><span>$950</span></div><div class="asset-item"><span>CD #123</span><span>$3,000</span></div></div><div class="card-actions"><button class="card-action-button">+ Deposit</button><button class="card-action-button">- Withdraw</button></div></div>
       <div class="card" id="stock-chart-card"><h2>Stock</h2><div class="chart-container-large"><canvas id="stockChart"></canvas></div></div>
-      <div class="card" id="portfolio-card"><h2>Portfolio</h2><div id="portfolio-charts-container"><div class="portfolio-chart-wrapper"><canvas id="portfolioChart1"></canvas></div><div class="portfolio-chart-wrapper"><canvas id="portfolioChart2"></canvas></div></div></div>
+      <!-- MODIFIED: Portfolio card with new canvas elements for bar charts -->
+      <div class="card" id="portfolio-card">
+        <h2>Portfolio</h2>
+        <div id="portfolio-charts-container">
+          <div class="portfolio-chart-wrapper"><canvas id="totalAmountChart"></canvas></div>
+          <div class="portfolio-chart-wrapper"><canvas id="interestRateChart"></canvas></div>
+        </div>
+      </div>
       <div class="card" id="market-watch-card"><h2>Market Watch</h2><div id="stock-list-container"></div><button class="refresh-button">Refresh</button><p class="timestamp">Last updated: Just now</p></div>
       <div class="card" id="history-card"><h2>History</h2><table class="history-table"><thead><tr><th>Date</th><th>Assets-name</th><th>Type</th><th>Quantity</th><th>Amount</th></tr></thead><tbody></tbody></table><div id="history-pagination"><button id="prev-page-btn" class="pagination-button">Previous</button><span id="page-info"></span><button id="next-page-btn" class="pagination-button">Next</button></div></div>
     </div>
@@ -419,17 +427,14 @@
   </div>
 
   <script>
-    // --- Chart Rendering ---
-    const ctxPortfolio1 = document.getElementById('portfolioChart1');
-    if (ctxPortfolio1) { new Chart(ctxPortfolio1, { type: 'pie', data: { labels: ['Stock', 'Bond', 'Cash'], datasets: [{ label: 'Portfolio', data: [14500, 11200, 11450], backgroundColor: ['#0047AB', '#FFA500', '#4DA6FF'] }] }, options: { responsive: true, plugins: { legend: { position: 'top' }, title: { display: true, text: 'Asset Class Distribution' } } } }); }
-    const ctxPortfolio2 = document.getElementById('portfolioChart2');
-    if (ctxPortfolio2) { new Chart(ctxPortfolio2, { type: 'pie', data: { labels: ['Tech', 'Finance', 'Consumer', 'Other'], datasets: [{ label: 'Stock Sectors', data: [65, 15, 10, 10], backgroundColor: ['#28a745', '#dc3545', '#ffc107', '#6c757d'] }] }, options: { responsive: true, plugins: { legend: { position: 'top' }, title: { display: true, text: 'Stock Sector Distribution (Sample)' } } } }); }
-    
     // ===== Data and Rendering Functions =====
 
     let assetPriceMap = new Map();
     let latestStockTickers = [];
     let stockChartInstance = null; 
+    // MODIFIED: Added chart instances for portfolio bar charts
+    let totalAmountChartInstance = null;
+    let interestRateChartInstance = null;
 
     /**
      * Fetches historical data for a given stock ticker and updates the main stock chart.
@@ -606,6 +611,140 @@
         prevButton.disabled = currentPage === 1;
         nextButton.disabled = currentPage === totalPages;
     }
+    
+    // NEW: Function to fetch and render portfolio bar charts
+    async function fetchAndDrawPortfolioCharts() {
+        const apiUrl = 'http://localhost:3000/assets/type/stock';
+        try {
+            const response = await fetch(apiUrl);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const rawData = await response.json();
+
+            // Process data to get the latest entry for each unique asset
+            const latestAssets = new Map();
+            rawData.forEach(asset => {
+                const existing = latestAssets.get(asset.asset_name);
+                if (!existing || new Date(asset.updated_at) > new Date(existing.updated_at)) {
+                    latestAssets.set(asset.asset_name, asset);
+                }
+            });
+            const portfolioData = Array.from(latestAssets.values());
+
+            const labels = portfolioData.map(asset => asset.asset_name);
+            const totalAmounts = portfolioData.map(asset => parseFloat(asset.total_amount));
+            const interestRates = portfolioData.map(asset => parseFloat(asset.interest_rate));
+
+            // Render Total Amount Chart (Left)
+            const ctxTotalAmount = document.getElementById('totalAmountChart');
+            if (ctxTotalAmount) {
+                if (totalAmountChartInstance) {
+                    totalAmountChartInstance.destroy();
+                }
+                totalAmountChartInstance = new Chart(ctxTotalAmount, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Total Amount ($)',
+                            data: totalAmounts,
+                            backgroundColor: 'rgba(0, 71, 171, 0.7)',
+                            borderColor: 'rgba(0, 71, 171, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            title: { display: true, text: 'Stock Portfolio by Total Amount' },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) { label += ': '; }
+                                        if (context.parsed.y !== null) {
+                                            label += '$' + context.parsed.y.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                ticks: {
+                                    callback: function(value) {
+                                        return '$' + (value / 1000) + 'k';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Render Interest Rate Chart (Right)
+            const ctxInterestRate = document.getElementById('interestRateChart');
+            if (ctxInterestRate) {
+                 if (interestRateChartInstance) {
+                    interestRateChartInstance.destroy();
+                }
+                interestRateChartInstance = new Chart(ctxInterestRate, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Interest Rate',
+                            data: interestRates,
+                            backgroundColor: interestRates.map(rate => rate >= 0 ? 'rgba(40, 167, 69, 0.7)' : 'rgba(220, 53, 69, 0.7)'),
+                            borderColor: interestRates.map(rate => rate >= 0 ? 'rgba(40, 167, 69, 1)' : 'rgba(220, 53, 69, 1)'),
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            title: { display: true, text: 'Stock Portfolio by Interest Rate' },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) { label += ': '; }
+                                        if (context.parsed.y !== null) {
+                                            label += (context.parsed.y * 100).toFixed(2) + '%';
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                ticks: {
+                                    callback: function(value) {
+                                        return (value * 100).toFixed(0) + '%';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+        } catch (error) {
+            console.error("Error fetching or drawing portfolio charts:", error);
+            const container = document.getElementById('portfolio-charts-container');
+            if (container) {
+                container.innerHTML = `<p style="color: red; text-align: center; width: 100%;">无法加载投资组合图表数据。</p>`;
+            }
+        }
+    }
 
     // ===== Main Execution on Page Load =====
     document.addEventListener('DOMContentLoaded', () => {
@@ -643,6 +782,7 @@
         }
 
         fetchMarketData();
+        fetchAndDrawPortfolioCharts(); // MODIFIED: Call function to draw new bar charts
         displayPage();
 
         // --- Event Listeners ---
@@ -768,4 +908,4 @@
     });
   </script>
 </body>
-</html>
+</html>```
