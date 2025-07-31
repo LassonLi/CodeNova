@@ -634,36 +634,57 @@
     }
 
     // --- History Data & Pagination ---
+    // ===== MODIFICATION START =====
+    // This function has been updated to match the new API response format for transaction history.
     function displayHistoryPage() {
         const historyTableBody = document.querySelector('#history-card tbody');
         const pageInfoSpan = document.getElementById('page-info');
         const prevButton = document.getElementById('prev-page-btn');
         const nextButton = document.getElementById('next-page-btn');
         historyTableBody.innerHTML = '';
+        
+        if (!historyData || historyData.length === 0) {
+            historyTableBody.innerHTML = `<tr><td colspan="5" style="color: red; text-align: center;">No transaction history found.</td></tr>`;
+            pageInfoSpan.textContent = 'Page 0 of 0';
+            prevButton.disabled = true;
+            nextButton.disabled = true;
+            return;
+        }
+
         const totalPages = Math.ceil(historyData.length / itemsPerPage);
         const startIndex = (currentPage - 1) * itemsPerPage;
         const paginatedItems = historyData.slice(startIndex, startIndex + itemsPerPage);
+
         paginatedItems.forEach(item => {
-            const operation = item.operation.toLowerCase();
+            // Use 'Operation' (capital 'O') from the new API response
+            const operation = item.Operation.toLowerCase();
             const isNegative = ['sell', 'withdraw'].includes(operation);
             const amountSign = isNegative ? '-' : '+';
             const amountClass = isNegative ? 'amount-negative' : 'amount-positive';
+            
+            // Use 'Amount' (capital 'A')
             const totalAmount = parseFloat(item.Amount);
             const formattedAmount = `${amountSign}$${totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-            // MODIFIED: Changed 'operation' to 'item.quantity' to match new table header
+            
+            // Use 'Quantity' (capital 'Q') and format it to 2 decimal places for better readability
+            const formattedQuantity = parseFloat(item.Quantity).toFixed(2);
+
+            // Construct the row using the correct field names from the API response
             const row = `<tr>
                 <td>${new Date(item.Date).toLocaleString()}</td>
                 <td>${item['Asset name']}</td>
                 <td>${item.Type}</td>
-                <td>${item.quantity || 'N/A'}</td>
+                <td>${formattedQuantity}</td>
                 <td class="${amountClass}">${formattedAmount}</td>
             </tr>`;
             historyTableBody.innerHTML += row;
         });
+
         pageInfoSpan.textContent = `Page ${currentPage} of ${totalPages}`;
         prevButton.disabled = currentPage === 1;
         nextButton.disabled = currentPage === totalPages;
     }
+    // ===== MODIFICATION END =====
     
     async function fetchHistoryData() {
         const historyTableBody = document.querySelector('#history-card tbody');
