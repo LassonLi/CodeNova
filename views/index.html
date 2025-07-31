@@ -12,6 +12,26 @@
       margin: 0;
       padding: 0;
     }
+    /* ADDED: Styles for new elements */
+    .main-title {
+      text-align: center;
+      color: #0d274d;
+      margin-top: 20px;
+      margin-bottom: 0;
+      font-size: 36px;
+    }
+    .footer-band {
+      background-color: #0d274d;
+      color: #f0f0f0;
+      text-align: center;
+      padding: 20px 0;
+      width: 100%;
+      margin-top: 40px;
+    }
+    .footer-band p {
+      margin: 0;
+      font-size: 14px;
+    }
     .container {
       max-width: 1600px;
       margin: 0 auto;
@@ -195,7 +215,6 @@
       background-color: #dc3545;
     }
 
-    /* MODIFIED: Adjusted grid layout from second file */
     .dashboard {
       display: grid;
       grid-template-columns: 1fr 2fr 1.2fr;
@@ -220,7 +239,7 @@
       flex-grow: 1;
       gap: 20px;
     }
-    /* MODIFIED: Portfolio chart wrapper style from second file */
+
     .portfolio-chart-wrapper {
       flex: 1;
       max-width: 48%;
@@ -232,7 +251,7 @@
         position: relative;
         min-height: 350px;
     }
-    /* MODIFIED: Combined canvas style from second file */
+
     .chart-container-large canvas, .portfolio-chart-wrapper canvas {
         position: absolute;
         top: 0;
@@ -397,19 +416,19 @@
   </style>
 </head>
 <body>
+  <h1 class="main-title">Portfolio Panel</h1>
+
   <div class="container">
     <div class="header">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/55/Rocket_icon.svg/2048px-Rocket_icon.svg.png" alt="logo" class="logo" />
+      <img src="logo.jpg" alt="logo" class="logo" />
       <div class="logo-text">CODENOVA</div>
     </div>
     <div class="dashboard">
       <!-- Cards -->
-      <div class="card" id="networth-card"><h2>Networth</h2><p>$37,150</p></div>
+      <div class="card" id="networth-card"><h2>Networth</h2><p>Calculating...</p></div>
       <div class="card" id="stock-assets-card"><h2>Stock</h2><div class="asset-list-container"></div><div class="card-actions"><button class="card-action-button">+ Buy</button><button class="card-action-button">- Sell</button></div></div>
-      <!-- REMOVED: Bond Card was here -->
       <div class="card" id="cash-card"><h2>Cash</h2><div class="asset-list-container"><div class="asset-item"><span>USD Account</span><span>$3,800</span></div><div class="asset-item"><span>Money Market</span><span>$2,200</span></div><div class="asset-item"><span>EUR Account</span><span>$1,500</span></div><div class="asset-item"><span>GBP Account</span><span>$950</span></div><div class="asset-item"><span>CD #123</span><span>$3,000</span></div></div><div class="card-actions"><button class="card-action-button">+ Deposit</button><button class="card-action-button">- Withdraw</button></div></div>
       <div class="card" id="stock-chart-card"><h2>Stock</h2><div class="chart-container-large"><canvas id="stockChart"></canvas></div></div>
-      <!-- MODIFIED: Portfolio card content from second file -->
       <div class="card" id="portfolio-card">
         <h2>Portfolio</h2>
         <div id="portfolio-charts-container">
@@ -418,7 +437,6 @@
         </div>
       </div>
       <div class="card" id="market-watch-card"><h2>Market Watch</h2><div id="stock-list-container"></div><button class="refresh-button">Refresh</button><p class="timestamp">Last updated: Just now</p></div>
-      <!-- MODIFIED: History table header updated -->
       <div class="card" id="history-card"><h2>History</h2><table class="history-table"><thead><tr><th>Date</th><th>Assets-name</th><th>Type</th><th>Quantity</th><th>Amount</th></tr></thead><tbody></tbody></table><div id="history-pagination"><button id="prev-page-btn" class="pagination-button">Previous</button><span id="page-info"></span><button id="next-page-btn" class="pagination-button">Next</button></div></div>
     </div>
   </div>
@@ -443,12 +461,70 @@
     let assetPriceMap = new Map();
     let ownedStockAssets = []; 
     let stockChartInstance = null;
-    // ADDED: Chart instances from second file
     let totalAmountChartInstance = null;
     let interestRateChartInstance = null;
     let historyData = [];
     let currentPage = 1;
     const itemsPerPage = 5;
+
+    // ===== NEW FUNCTION: Calculate and Display Net Worth =====
+    async function fetchAndCalculateNetWorth() {
+        const networthElement = document.querySelector('#networth-card p');
+        if (!networthElement) return;
+        networthElement.textContent = 'Calculating...';
+
+        const stockApiUrl = 'http://localhost:3000/assets/type/stock';
+        const cashApiUrl = 'http://localhost:3000/assets/type/cash';
+
+        try {
+            // Fetch both APIs at the same time
+            const [stockResponse, cashResponse] = await Promise.all([
+                fetch(stockApiUrl),
+                fetch(cashApiUrl)
+            ]);
+
+            if (!stockResponse.ok || !cashResponse.ok) {
+                throw new Error('Failed to fetch asset data for net worth calculation');
+            }
+
+            const stockData = await stockResponse.json();
+            const cashData = await cashResponse.json();
+
+            // Helper function to get the sum of the most recent version of each asset
+            const getLatestTotalAmount = (data) => {
+                const latestAssets = new Map();
+                data.forEach(asset => {
+                    const existing = latestAssets.get(asset.asset_name);
+                    // If asset is not in map, or the current one is newer, update it
+                    if (!existing || new Date(asset.updated_at) > new Date(existing.updated_at)) {
+                        latestAssets.set(asset.asset_name, asset);
+                    }
+                });
+
+                // Sum the total_amount from the latest assets
+                let total = 0;
+                for (const asset of latestAssets.values()) {
+                    total += parseFloat(asset.total_amount) || 0;
+                }
+                return total;
+            };
+
+            const stockAmount = getLatestTotalAmount(stockData);
+            const cashAmount = getLatestTotalAmount(cashData);
+            const netWorth = stockAmount + cashAmount;
+
+            // Update the UI with the formatted total
+            networthElement.textContent = netWorth.toLocaleString('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            });
+
+        } catch (error) {
+            console.error("Error calculating net worth:", error);
+            networthElement.textContent = 'Error';
+        }
+    }
+
 
     function renderStockAssets(assetsData) {
         const container = document.querySelector('#stock-assets-card .asset-list-container');
@@ -473,8 +549,21 @@
             const response = await fetch(apiUrl);
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             const data = await response.json();
-            ownedStockAssets = data.map(asset => asset.asset_name); 
-            renderStockAssets(data);
+            
+            // To get unique asset names for the dropdown, we use a Set
+            const uniqueAssetNames = new Set(data.map(asset => asset.asset_name));
+            ownedStockAssets = Array.from(uniqueAssetNames);
+
+            // For display, we show the latest version of each asset
+            const latestAssets = new Map();
+            data.forEach(asset => {
+                const existing = latestAssets.get(asset.asset_name);
+                if (!existing || new Date(asset.updated_at) > new Date(existing.updated_at)) {
+                    latestAssets.set(asset.asset_name, asset);
+                }
+            });
+            renderStockAssets(Array.from(latestAssets.values()));
+
         } catch (error) {
             console.error("Error fetching stock assets:", error);
             if (container) container.innerHTML = `<p style="color: red;">Failed to load stock assets.</p>`;
@@ -552,7 +641,6 @@
       });
     }
 
-    // ADDED: Portfolio charts function from second file
     async function fetchAndDrawPortfolioCharts() {
         const apiUrl = 'http://localhost:3000/assets/type/stock';
         try {
@@ -633,7 +721,6 @@
         }
     }
 
-    // --- History Data & Pagination ---
     function displayHistoryPage() {
         const historyTableBody = document.querySelector('#history-card tbody');
         const pageInfoSpan = document.getElementById('page-info');
@@ -650,7 +737,6 @@
             const amountClass = isNegative ? 'amount-negative' : 'amount-positive';
             const totalAmount = parseFloat(item.Amount);
             const formattedAmount = `${amountSign}$${totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-            // MODIFIED: Changed 'operation' to 'item.quantity' to match new table header
             const row = `<tr>
                 <td>${new Date(item.Date).toLocaleString()}</td>
                 <td>${item['Asset name']}</td>
@@ -689,10 +775,11 @@
             });
         }
         
+        // --- Call all data fetching functions ---
+        fetchAndCalculateNetWorth(); // ADDED: Calculate net worth on load
         fetchStockAssets();
         fetchMarketData();
         fetchHistoryData();
-        // ADDED: Call to render new portfolio charts
         fetchAndDrawPortfolioCharts();
 
         // --- Event Listeners ---
@@ -710,7 +797,7 @@
             }
         });
 
-        // --- Modal Logic (Kept from original, more functional file) ---
+        // --- Modal Logic ---
         const modal = document.getElementById('transaction-modal');
         const closeModalBtn = document.getElementById('modal-close-btn');
         const modalTitle = document.getElementById('modal-title');
@@ -772,12 +859,15 @@
             assetSelect.innerHTML = '';
             let assetList = [];
 
-            // MODIFIED: Removed 'Bond' logic as the card is gone
             if (assetType === 'Stock') {
-                assetList = ownedStockAssets;
+                if (action === 'Sell') {
+                    assetList = ownedStockAssets;
+                } else { // For 'Buy', use the list from market watch
+                    assetList = Array.from(assetPriceMap.keys());
+                }
             }
 
-            if (assetList.length === 0 && assetType === 'Stock' && action === 'Sell') {
+            if (assetList.length === 0 && action === 'Sell') {
                 alert("You do not own any stocks to sell.");
                 return;
             }
@@ -835,7 +925,8 @@
                 await response.json();
                 alert(`Success! Transaction completed.`);
                 closeModal();
-                // Refresh data on success
+                // Refresh all relevant data on success
+                fetchAndCalculateNetWorth(); // ADDED: Recalculate net worth after transaction
                 fetchStockAssets();
                 fetchHistoryData();
                 fetchAndDrawPortfolioCharts();
@@ -854,8 +945,7 @@
                 if (actionText.includes('Buy')) action = 'Buy';
                 if (actionText.includes('Sell')) action = 'Sell';
                 if (card.id.includes('stock')) assetType = 'Stock';
-                if (card.id.includes('cash')) assetType = 'Cash'; // Kept for future use
-                // Bond logic is naturally removed as the card is gone
+                if (card.id.includes('cash')) assetType = 'Cash'; 
                 if(action && assetType === 'Stock') openModal(action, assetType);
             });
         });
@@ -879,5 +969,9 @@
         confirmBtn.addEventListener('click', handleTransaction);
     });
   </script>
+
+  <footer class="footer-band">
+    <p>&copy; 2025 Codenova Financial Dashboard. All Rights Reserved.</p>
+  </footer>
 </body>
 </html>
