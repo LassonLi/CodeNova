@@ -10,9 +10,9 @@ Lasson Li, Eric Huang, David Zhao, Shea Jin, Rina Li
 |-------------|-----------------------|
 | Lasson Li   | Back-End Developer    |
 | Rina Li     | Back-End Developer    |
-| Shea Jin    | Database Specialist   |
+| Shea Jin    | PM, Back-End Developer|
 | David Zhao  | Front-End Developer   |
-| Eric Huang  | Full-Stack Developer  |
+| Eric Huang  | Front-End Developer   |
 
 ---
 
@@ -46,7 +46,7 @@ The CodeNova project is a backend application built using Node.js and Express.js
 ## Project Structure
 
 ```
-c:\Users\Administrator\Shea\CodeNova\CodeNova\
+\CodeNova\
 ├── app.js                     # Main entry point of the application
 ├── config\
 │   └── db.js                  # Database configuration and connection pool
