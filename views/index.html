@@ -195,21 +195,22 @@
       background-color: #dc3545;
     }
 
+    /* MODIFIED: Adjusted grid layout */
     .dashboard {
       display: grid;
       grid-template-columns: 1fr 2fr 1.2fr;
-      grid-template-rows: auto auto auto auto 1fr;
+      grid-template-rows: auto auto 1fr auto; /* Adjusted for new layout */
       gap: 30px;
     }
 
     #networth-card { grid-column: 1; grid-row: 1; }
     #stock-assets-card { grid-column: 1; grid-row: 2; }
-    #bond-card { grid-column: 1; grid-row: 3; }
-    #cash-card { grid-column: 1; grid-row: 4; }
+    /* #bond-card was here */
+    #cash-card { grid-column: 1; grid-row: 3; } /* Moved up */
     #stock-chart-card { grid-column: 2; grid-row: 1 / 3; }
     #market-watch-card { grid-column: 3; grid-row: 1 / 3; }
-    #portfolio-card { grid-column: 2 / 4; grid-row: 3 / 5; }
-    #history-card { grid-column: 1 / 4; grid-row: 5; }
+    #portfolio-card { grid-column: 2 / 4; grid-row: 3; } /* Adjusted row span */
+    #history-card { grid-column: 1 / 4; grid-row: 4; } /* Moved up */
 
     #portfolio-charts-container {
       display: flex;
@@ -399,10 +400,9 @@
       <!-- Cards -->
       <div class="card" id="networth-card"><h2>Networth</h2><p>$37,150</p></div>
       <div class="card" id="stock-assets-card"><h2>Stock</h2><div class="asset-list-container"><div class="asset-item"><span>AAPL</span><span>$4,450</span></div><div class="asset-item"><span>TSLA</span><span>$3,200</span></div><div class="asset-item"><span>GOOGL</span><span>$2,800</span></div><div class="asset-item"><span>MSFT</span><span>$2,150</span></div><div class="asset-item"><span>AMZN</span><span>$1,900</span></div></div><div class="card-actions"><button class="card-action-button">+ Buy</button><button class="card-action-button">- Sell</button></div></div>
-      <div class="card" id="bond-card"><h2>Bond</h2><div class="asset-list-container"><div class="asset-item"><span>US Treasury</span><span>$4,200</span></div><div class="asset-item"><span>Corp Bond A</span><span>$2,500</span></div><div class="asset-item"><span>Muni Bond B</span><span>$1,800</span></div><div class="asset-item"><span>Intl Bond C</span><span>$1,500</span></div><div class="asset-item"><span>High-Yield D</span><span>$1,200</span></div></div><div class="card-actions"><button class="card-action-button">+ Buy</button><button class="card-action-button">- Sell</button></div></div>
+      <!-- REMOVED: Bond Card -->
       <div class="card" id="cash-card"><h2>Cash</h2><div class="asset-list-container"><div class="asset-item"><span>USD Account</span><span>$3,800</span></div><div class="asset-item"><span>Money Market</span><span>$2,200</span></div><div class="asset-item"><span>EUR Account</span><span>$1,500</span></div><div class="asset-item"><span>GBP Account</span><span>$950</span></div><div class="asset-item"><span>CD #123</span><span>$3,000</span></div></div><div class="card-actions"><button class="card-action-button">+ Deposit</button><button class="card-action-button">- Withdraw</button></div></div>
       <div class="card" id="stock-chart-card"><h2>Stock</h2><div class="chart-container-large"><canvas id="stockChart"></canvas></div></div>
-      <!-- MODIFIED: Portfolio card with new canvas elements for bar charts -->
       <div class="card" id="portfolio-card">
         <h2>Portfolio</h2>
         <div id="portfolio-charts-container">
@@ -432,7 +432,6 @@
     let assetPriceMap = new Map();
     let latestStockTickers = [];
     let stockChartInstance = null; 
-    // MODIFIED: Added chart instances for portfolio bar charts
     let totalAmountChartInstance = null;
     let interestRateChartInstance = null;
 
@@ -612,7 +611,6 @@
         nextButton.disabled = currentPage === totalPages;
     }
     
-    // NEW: Function to fetch and render portfolio bar charts
     async function fetchAndDrawPortfolioCharts() {
         const apiUrl = 'http://localhost:3000/assets/type/stock';
         try {
@@ -622,7 +620,6 @@
             }
             const rawData = await response.json();
 
-            // Process data to get the latest entry for each unique asset
             const latestAssets = new Map();
             rawData.forEach(asset => {
                 const existing = latestAssets.get(asset.asset_name);
@@ -636,7 +633,6 @@
             const totalAmounts = portfolioData.map(asset => parseFloat(asset.total_amount));
             const interestRates = portfolioData.map(asset => parseFloat(asset.interest_rate));
 
-            // Render Total Amount Chart (Left)
             const ctxTotalAmount = document.getElementById('totalAmountChart');
             if (ctxTotalAmount) {
                 if (totalAmountChartInstance) {
@@ -687,7 +683,6 @@
                 });
             }
 
-            // Render Interest Rate Chart (Right)
             const ctxInterestRate = document.getElementById('interestRateChart');
             if (ctxInterestRate) {
                  if (interestRateChartInstance) {
@@ -782,7 +777,7 @@
         }
 
         fetchMarketData();
-        fetchAndDrawPortfolioCharts(); // MODIFIED: Call function to draw new bar charts
+        fetchAndDrawPortfolioCharts();
         displayPage();
 
         // --- Event Listeners ---
@@ -794,7 +789,6 @@
             refreshButton.addEventListener('click', fetchMarketData);
         }
 
-        // NEW: Event listener for clicking on stocks in Market Watch
         const marketWatchContainer = document.getElementById('stock-list-container');
         if (marketWatchContainer) {
             marketWatchContainer.addEventListener('click', (event) => {
@@ -830,7 +824,12 @@
             });
         };
         
-        getAssetDataFromCard('bond-card').forEach(bond => assetPriceMap.set(bond.name, 100));
+        // Simulating bond and cash prices for the modal
+        assetPriceMap.set('US Treasury', 100);
+        assetPriceMap.set('Corp Bond A', 100);
+        assetPriceMap.set('Muni Bond B', 100);
+        assetPriceMap.set('Intl Bond C', 100);
+        assetPriceMap.set('High-Yield D', 100);
         getAssetDataFromCard('cash-card').forEach(cash => assetPriceMap.set(cash.name, 1));
 
         const updateCalculation = () => {
@@ -852,6 +851,7 @@
                  assetList = getAssetDataFromCard(cardId).map(a => a.name);
             } else { 
                 if (assetType === 'Stock') assetList = latestStockTickers;
+                // Even if card is gone, keep logic for modal if needed elsewhere
                 if (assetType === 'Bond') assetList = ['US Treasury', 'Corp Bond A', 'Muni Bond B', 'Intl Bond C', 'High-Yield D'];
                 if (assetType === 'Cash') assetList = getAssetDataFromCard('cash-card').map(c => c.name);
             }
@@ -887,10 +887,15 @@
                 if (actionText.includes('Sell')) action = 'Sell';
                 if (actionText.includes('Deposit')) action = 'Deposit';
                 if (actionText.includes('Withdraw')) action = 'Withdraw';
+                
                 if (card.id.includes('stock')) assetType = 'Stock';
-                if (card.id.includes('bond')) assetType = 'Bond';
+                // The 'bond-card' is removed, but we keep the logic in case it's triggered differently
+                if (card.id.includes('bond')) assetType = 'Bond'; 
                 if (card.id.includes('cash')) assetType = 'Cash';
-                openModal(action, assetType);
+
+                if(assetType) { // Ensure assetType is defined before opening
+                    openModal(action, assetType);
+                }
             });
         });
 
@@ -908,4 +913,4 @@
     });
   </script>
 </body>
-</html>```
+</html>
