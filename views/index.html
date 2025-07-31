@@ -152,12 +152,18 @@
       overflow-y: auto;
     }
     
+    /* MODIFIED: Added cursor and hover effect */
     .stock-info-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 12px 0;
       border-bottom: 1px solid #f0f0f0;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .stock-info-item:hover {
+      background-color: #f9f9f9;
     }
     .stock-info-item:last-child {
       border-bottom: none;
@@ -423,10 +429,10 @@
 
     let assetPriceMap = new Map();
     let latestStockTickers = [];
-    let stockChartInstance = null; // MODIFIED: To hold the stock chart instance
+    let stockChartInstance = null; 
 
     /**
-     * NEW: Fetches historical data for a given stock ticker and updates the main stock chart.
+     * Fetches historical data for a given stock ticker and updates the main stock chart.
      * @param {string} ticker The stock symbol to fetch history for.
      */
     async function fetchAndDrawStockHistory(ticker) {
@@ -449,7 +455,6 @@
             }
             const historyData = await response.json();
 
-            // Process data for the chart, taking a sample for better readability if data is too large
             const sampleData = historyData.length > 100 ? historyData.filter((_, i) => i % Math.floor(historyData.length / 100) === 0) : historyData;
 
             const labels = sampleData.map(item =>
@@ -457,13 +462,11 @@
             );
             const dataPoints = sampleData.map(item => item.close);
 
-            // Update the chart instance
             stockChartInstance.data.labels = labels;
             stockChartInstance.data.datasets[0].data = dataPoints;
             stockChartInstance.data.datasets[0].label = `${ticker} Stock Value`;
             stockChartInstance.update();
 
-            // Update card title
             if (stockChartCardTitle) {
                 stockChartCardTitle.textContent = `Stock: ${ticker}`;
             }
@@ -473,7 +476,6 @@
             if (stockChartCardTitle) {
                 stockChartCardTitle.textContent = `Stock: ${ticker} (Error loading chart)`;
             }
-            // Clear the chart on error
             stockChartInstance.data.labels = [];
             stockChartInstance.data.datasets[0].data = [];
             stockChartInstance.update();
@@ -482,8 +484,7 @@
 
 
     /**
-     * REVISED: Fetches market data from the local API.
-     * This function retrieves stock data, formats it, and then calls the render function.
+     * Fetches market data from the local API.
      */
     async function fetchMarketData() {
         const container = document.getElementById('stock-list-container');
@@ -512,7 +513,6 @@
                 latestStockTickers = formattedData.map(stock => stock.code);
                 assetPriceMap = new Map([...assetPriceMap, ...newPriceMap]);
 
-                // MODIFIED: Fetch and draw history for the first stock in the list
                 const firstTicker = formattedData[0].code;
                 fetchAndDrawStockHistory(firstTicker);
 
@@ -611,16 +611,15 @@
     document.addEventListener('DOMContentLoaded', () => {
         // --- Initial Page Renders ---
         
-        // MODIFIED: Initialize the stock chart and store its instance
         const ctx2 = document.getElementById('stockChart');
         if (ctx2) {
             stockChartInstance = new Chart(ctx2, {
                 type: 'line',
                 data: {
-                    labels: [], // Start with empty labels
+                    labels: [],
                     datasets: [{
                         label: 'Stock Value',
-                        data: [], // Start with empty data
+                        data: [],
                         fill: true,
                         backgroundColor: 'rgba(77, 166, 255, 0.1)',
                         borderColor: '#0066ff',
@@ -630,7 +629,7 @@
                 options: {
                     scales: {
                         y: { 
-                            beginAtZero: false // Better for stock charts not to start at 0
+                            beginAtZero: false
                         }
                     },
                     plugins: {
@@ -647,14 +646,26 @@
         displayPage();
 
         // --- Event Listeners ---
-        // Pagination
         prevButton.addEventListener('click', () => { if (currentPage > 1) { currentPage--; displayPage(); } });
         nextButton.addEventListener('click', () => { if (currentPage < Math.ceil(mockHistoryData.length / itemsPerPage)) { currentPage++; displayPage(); } });
         
-        // Refresh button for Market Watch
         const refreshButton = document.querySelector('#market-watch-card .refresh-button');
         if (refreshButton) {
             refreshButton.addEventListener('click', fetchMarketData);
+        }
+
+        // NEW: Event listener for clicking on stocks in Market Watch
+        const marketWatchContainer = document.getElementById('stock-list-container');
+        if (marketWatchContainer) {
+            marketWatchContainer.addEventListener('click', (event) => {
+                const stockItem = event.target.closest('.stock-info-item');
+                if (stockItem) {
+                    const ticker = stockItem.querySelector('.stock-details .code').textContent;
+                    if (ticker) {
+                        fetchAndDrawStockHistory(ticker);
+                    }
+                }
+            });
         }
 
         // --- Modal Logic ---
@@ -679,7 +690,6 @@
             });
         };
         
-        // Initialize price map with non-stock assets
         getAssetDataFromCard('bond-card').forEach(bond => assetPriceMap.set(bond.name, 100));
         getAssetDataFromCard('cash-card').forEach(cash => assetPriceMap.set(cash.name, 1));
 
@@ -700,7 +710,7 @@
             if (action === 'Sell' || action === 'Withdraw') {
                  const cardId = assetType === 'Stock' ? 'stock-assets-card' : `${assetType.toLowerCase()}-card`;
                  assetList = getAssetDataFromCard(cardId).map(a => a.name);
-            } else { // Buy or Deposit
+            } else { 
                 if (assetType === 'Stock') assetList = latestStockTickers;
                 if (assetType === 'Bond') assetList = ['US Treasury', 'Corp Bond A', 'Muni Bond B', 'Intl Bond C', 'High-Yield D'];
                 if (assetType === 'Cash') assetList = getAssetDataFromCard('cash-card').map(c => c.name);
