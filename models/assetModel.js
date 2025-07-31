@@ -95,15 +95,30 @@ exports.postAsset = async (
   }
 };
 
-// 根据账户 ID 获取资产
-exports.getAssetsByType = async (accountId) => {
+
+exports.getAssetsByType = async (asset_type_id) => {
   const conn = await pool.getConnection();
   try {
-    // 改成 join的语法，内容有
-    const [results] = await conn.query('SELECT * FROM assets WHERE account_id = ?', [accountId]);
+    // 使用 JOIN 查询 assets 和 asset_types 表
+    const [results] = await conn.query(
+      `SELECT 
+         a.asset_name, 
+         a.current_quantity, 
+         a.current_price_per_unit, 
+         a.purchase_price, 
+         a.average_price, 
+         a.total_amount, 
+         a.created_at, 
+         a.updated_at, 
+         at.type_name AS asset_type_name
+       FROM assets a
+       JOIN asset_types at ON a.asset_type_id = at.asset_type_id
+       WHERE a.asset_type_id = ?`,
+      [asset_type_id]
+    );
     return results; // 返回查询结果
   } catch (err) {
-    console.error('Error in getAssetsByAccount:', err.message);
+    console.error('Error in getAssetsByType:', err.message);
     throw err;
   } finally {
     conn.release();
@@ -111,28 +126,20 @@ exports.getAssetsByType = async (accountId) => {
 };
 
 // 根据账户 asset_type_id 获取type_name
-exports.getAssetsTypeIdByType = async (typeName) => {
+// 根据资产类型名称获取资产类型 ID
+exports.getAssetsTypeIdByType = async (type_name) => {
   const conn = await pool.getConnection();
   try {
-    // "asset_name": "META",
-    // "current_quantity"
-    // "current_price_per_unit": "100.00000000",
-    // "purchase_price": "10.00000000",
-    // "average_price": null,
-    // "total_amount": null,
-    // "updated by":
-    // "interest_rate": // 返回利率，自己想计算方法
-    // 查询 asset_types 表以获取 asset_type_id
     const [results] = await conn.query(
       'SELECT asset_type_id FROM asset_types WHERE type_name = ?',
-      [typeName]
+      [type_name]
     );
 
     if (results.length === 0) {
-      throw new Error(`Asset type "${typeName}" not found.`);
+      return null; // 如果未找到对应的资产类型，返回 null
     }
 
-    return results[0].asset_type_id; // 返回 asset_type_id
+    return results[0].asset_type_id; // 返回资产类型 ID
   } catch (err) {
     console.error('Error in getAssetsTypeIdByType:', err.message);
     throw err;

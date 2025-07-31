@@ -1,5 +1,7 @@
 const assetModel = require('../models/assetModel');
 const transactionsController = require('./transactionsController');
+const yahooApiController = require('./yahooApiController');
+
 
 exports.updateAsset = async (req, res) => {
   const { asset_name } = req.params; // 从请求参数中获取资产名称
@@ -132,18 +134,96 @@ exports.getAssetsByType = async (req, res) => {
   const { type_name } = req.params;
 
   try {
-    // 调用模型方法获取资产
+    // 获取资产类型 ID
     const asset_type_id = await assetModel.getAssetsTypeIdByType(type_name);
+
+    if (!asset_type_id) {
+      return res.status(404).json({ error: `Asset type "${type_name}" not found.` });
+    }
+
+    // 获取资产列表
     const assets = await assetModel.getAssetsByType(asset_type_id);
 
-    // 返回资产列表
-    
-    res.json(assets);
+    // 调用 Yahoo API 获取当前价格并计算利率
+    const enrichedAssets = await Promise.all(
+      assets.map(async (asset) => {
+        try {
+          // 模拟调用 yahooApiController.getStockPrice 方法
+          const mockReq = { params: { symbol: asset.asset_name } };
+          let yahooResponseData;
+
+          // 模拟 res 对象
+          const mockRes = {
+            json: (data) => {
+              yahooResponseData = data; // 捕获返回的 JSON 数据
+            },
+            status: (statusCode) => ({
+              json: (data) => {
+                throw new Error(`Failed to fetch price for ${asset.asset_name}: ${data.error}`);
+              },
+            }),
+          };
+
+          // 调用 yahooApiController.getStockPrice
+          await yahooApiController.getStockPrice(mockReq, mockRes);
+
+          // 从响应中提取价格
+          const current_price_per_unit = yahooResponseData.price;
+
+          // 计算利率 interest_rate
+          const interest_rate = asset.total_amount
+            ? ((asset.current_quantity * current_price_per_unit - asset.total_amount) / asset.total_amount).toFixed(8)
+            : null;
+
+          return {
+            ...asset,
+            current_price_per_unit: current_price_per_unit.toFixed(8),
+            interest_rate,
+          };
+        } catch (error) {
+          console.error(`Failed to fetch price for ${asset.asset_name}:`, error.message);
+          return {
+            ...asset,
+            current_price_per_unit: null,
+            interest_rate: null,
+          };
+        }
+      })
+    );
+
+    res.json(enrichedAssets);
   } catch (err) {
-    console.error('Error fetching assets by account:', err.message);
+    console.error('Error fetching assets by type:', err.message);
     res.status(500).json({ error: 'An internal server error occurred.' });
   }
 };
+
+// exports.getAssetsByType = async (req, res) => {
+//   const { type_name } = req.params;
+// // 返回的字段
+// // asset_name varchar(100) 
+// // current_quantity decimal(20,8) 
+// // current_price_per_unit decimal(20,8)  // 希望是调用yahooApiController
+// // purchase_price decimal(20,8) 
+// // average_price decimal(20,8) 
+// // total_amount decimal(20,8) 
+// // created_at timestamp 
+// // updated_at timestamp
+// // interest_rate float()  = （current_quantity * current_price_per_unit - total_amount）// total_amount
+
+//   try {
+//     // 调用模型方法获取资产
+//     const asset_type_id = await assetModel.getAssetsTypeIdByType(type_name);
+//     const assets = await assetModel.getAssetsByType(asset_type_id);
+
+//     // 返回资产列表
+    
+//     res.json(assets);
+//   } catch (err) {
+//     console.error('Error fetching assets by account:', err.message);
+//     res.status(500).json({ error: 'An internal server error occurred.' });
+//   }
+// };
 
 // const {pool} = require('../config/db');
 
