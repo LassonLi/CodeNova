@@ -405,8 +405,14 @@
     <div class="dashboard">
       <!-- Cards -->
       <div class="card" id="networth-card"><h2>Networth</h2><p>$37,150</p></div>
+<<<<<<< HEAD
       <div class="card" id="stock-assets-card"><h2>Stock</h2><div class="asset-list-container"></div><div class="card-actions"><button class="card-action-button">+ Buy</button><button class="card-action-button">- Sell</button></div></div>
       <!-- REMOVED: Bond Card was here -->
+=======
+      <!-- MODIFIED: Removed hardcoded stock assets -->
+      <div class="card" id="stock-assets-card"><h2>Stock</h2><div class="asset-list-container"><!-- Asset list will be populated by JavaScript --></div><div class="card-actions"><button class="card-action-button">+ Buy</button><button class="card-action-button">- Sell</button></div></div>
+      <div class="card" id="bond-card"><h2>Bond</h2><div class="asset-list-container"><div class="asset-item"><span>US Treasury</span><span>$4,200</span></div><div class="asset-item"><span>Corp Bond A</span><span>$2,500</span></div><div class="asset-item"><span>Muni Bond B</span><span>$1,800</span></div><div class="asset-item"><span>Intl Bond C</span><span>$1,500</span></div><div class="asset-item"><span>High-Yield D</span><span>$1,200</span></div></div><div class="card-actions"><button class="card-action-button">+ Buy</button><button class="card-action-button">- Sell</button></div></div>
+>>>>>>> 00324512f02cbd33da489797224be542b468da91
       <div class="card" id="cash-card"><h2>Cash</h2><div class="asset-list-container"><div class="asset-item"><span>USD Account</span><span>$3,800</span></div><div class="asset-item"><span>Money Market</span><span>$2,200</span></div><div class="asset-item"><span>EUR Account</span><span>$1,500</span></div><div class="asset-item"><span>GBP Account</span><span>$950</span></div><div class="asset-item"><span>CD #123</span><span>$3,000</span></div></div><div class="card-actions"><button class="card-action-button">+ Deposit</button><button class="card-action-button">- Withdraw</button></div></div>
       <div class="card" id="stock-chart-card"><h2>Stock</h2><div class="chart-container-large"><canvas id="stockChart"></canvas></div></div>
       <!-- MODIFIED: Portfolio card content from second file -->
@@ -450,12 +456,82 @@
     let currentPage = 1;
     const itemsPerPage = 5;
 
+<<<<<<< HEAD
     function renderStockAssets(assetsData) {
         const container = document.querySelector('#stock-assets-card .asset-list-container');
         if (!container) return;
         container.innerHTML = ''; 
         if (!assetsData || assetsData.length === 0) {
             container.innerHTML = '<p>No stock assets found.</p>';
+=======
+    /**
+     * NEW: Renders the list of stock assets in the corresponding card.
+     * @param {Array} assetsData - The array of asset objects from the API.
+     */
+    function renderStockAssets(assetsData) {
+        const container = document.querySelector('#stock-assets-card .asset-list-container');
+        if (!container) {
+            console.error('Stock assets container not found!');
+            return;
+        }
+        container.innerHTML = ''; // Clear any existing mock data or loading text
+
+        if (!assetsData || assetsData.length === 0) {
+            container.innerHTML = '<p>No stock assets found.</p>';
+            return;
+        }
+
+        assetsData.forEach(asset => {
+            const totalAmount = parseFloat(asset.total_amount);
+            const formattedAmount = totalAmount.toLocaleString('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            });
+
+            const assetItem = document.createElement('div');
+            assetItem.className = 'asset-item';
+            assetItem.innerHTML = `
+                <span>${asset.asset_name}</span>
+                <span>${formattedAmount}</span>
+            `;
+            container.appendChild(assetItem);
+        });
+    }
+
+    /**
+     * NEW: Fetches stock asset data from the API and triggers rendering.
+     */
+    async function fetchStockAssets() {
+        const container = document.querySelector('#stock-assets-card .asset-list-container');
+        const apiUrl = 'http://localhost:3000/assets/type/stock';
+
+        if (container) {
+            container.innerHTML = '<p>Loading assets...</p>';
+        }
+
+        try {
+            const response = await fetch(apiUrl);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            renderStockAssets(data);
+        } catch (error) {
+            console.error("Error fetching stock assets:", error);
+            if (container) {
+                container.innerHTML = `<p style="color: red;">Failed to load stock assets.</p>`;
+            }
+        }
+    }
+
+    /**
+     * Fetches historical data for a given stock ticker and updates the main stock chart.
+     * @param {string} ticker The stock symbol to fetch history for.
+     */
+    async function fetchAndDrawStockHistory(ticker) {
+        if (!stockChartInstance || !ticker) {
+            console.error("Chart instance or ticker not available.");
+>>>>>>> 00324512f02cbd33da489797224be542b468da91
             return;
         }
         assetsData.forEach(asset => {
@@ -710,6 +786,10 @@
             });
         }
         
+<<<<<<< HEAD
+=======
+        // MODIFIED: Call the new function to fetch stock assets
+>>>>>>> 00324512f02cbd33da489797224be542b468da91
         fetchStockAssets();
         fetchMarketData();
         fetchHistoryData();
