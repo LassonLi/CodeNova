@@ -9,8 +9,9 @@ const getTransactions = async () => {
            t.transaction_time AS Date,
            at.type_name AS 'Asset name',
            a.asset_name AS Type,
+           t.quantity AS Quantity,
            a.total_amount AS Amount,
-           tt.type_name AS operation
+           tt.type_name AS Operation
          FROM transactions t
          JOIN assets a ON t.asset_id = a.asset_id
          JOIN asset_types at ON a.asset_type_id = at.asset_type_id
