@@ -149,6 +149,35 @@ exports.getAssetsTypeIdByType = async (type_name) => {
 };
 
 
+exports.getAssetByName = async (asset_name) => {
+  const conn = await pool.getConnection();
+  try {
+    const [results] = await conn.query(
+      `SELECT 
+         a.asset_name, 
+         a.current_quantity, 
+         a.current_price_per_unit, 
+         a.purchase_price, 
+         a.average_price, 
+         a.total_amount, 
+         a.created_at, 
+         a.updated_at, 
+         at.type_name AS asset_type_name
+       FROM assets a
+       JOIN asset_types at ON a.asset_type_id = at.asset_type_id
+       WHERE a.asset_name = ?`,
+      [asset_name]
+    );
+
+    return results.length > 0 ? results[0] : null; // 返回查询结果或 null
+  } catch (err) {
+    console.error('Error in getAssetByName:', err.message);
+    throw err;
+  } finally {
+    conn.release();
+  }
+};
+
 // exports.buyAsset = async (accountId, assetName, assetTypeId, quantity, pricePerUnit) => {
 //   const conn = await pool.getConnection();
 //   try {
