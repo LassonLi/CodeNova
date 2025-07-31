@@ -22,12 +22,12 @@ CREATE TABLE assets (
   asset_id INT AUTO_INCREMENT PRIMARY KEY,
   account_id INT NOT NULL,
   asset_type_id INT NOT NULL,
-  asset_name VARCHAR(100) NOT NULL,
+  asset_name VARCHAR(100) NOT NULL UNIQUE, -- e.g., 'AAPL', 'GOOGL', 'BTC'
   current_quantity DECIMAL(20, 8),                
   current_price_per_unit DECIMAL(20, 8),
   purchase_price DECIMAL(20, 8),       -- Optional: first purchase
   average_price DECIMAL(20, 8),        -- Optional: average across transactions
-  total_amount DECIMAL(20, 8),         
+  total_amount DECIMAL(20, 8) NOT NULL, -- Total value of the asset   
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 

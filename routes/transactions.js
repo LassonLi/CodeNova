@@ -7,6 +7,7 @@ const controller = require('../controllers/transactionsController');
  * /transactions:
  *   post:
  *     summary: Create a new transaction
+ *     description: Creates a new transaction for a specific asset.
  *     tags: [Transactions]
  *     requestBody:
  *       required: true
@@ -40,6 +41,7 @@ router.post('/', controller.createTransaction);
  * /transactions/{asset_id}:
  *   get:
  *     summary: Get transactions by asset ID
+ *     description: Fetches all transactions associated with a specific asset ID.
  *     tags: [Transactions]
  *     parameters:
  *       - in: path
@@ -63,6 +65,7 @@ router.get('/:asset_id', controller.getTransactionsByAsset);
  * /transactions:
  *   get:
  *     summary: Get all transactions
+ *     description: Fetches the most recent transactions, limited to 15.
  *     tags: [Transactions]
  *     responses:
  *       200:

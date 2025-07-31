@@ -56,9 +56,9 @@ router.get('/type/:type_name', controller.getAssetsByType);
 
 /**
  * @swagger
- * /assets:
+ * /assets/{asset_name}:
  *   put:
- *     summary: Buy or sell an asset.
+ *     summary: Update an asset and add trasaction by buying or selling.
  *     tags: [Assets]
  *     parameters:
  *       - in: path
@@ -76,16 +76,26 @@ router.get('/type/:type_name', controller.getAssetsByType);
  *             properties:
  *               account_id:
  *                 type: integer
+ *                 description: The account ID (default is 1).
  *               asset_type:
  *                 type: string
+ *                 description: The type of the asset (e.g., stock, cash).
  *               transaction_type:
  *                 type: string
+ *                 description: The type of transaction (e.g., buy, sell, deposit, withdraw).
  *               quantity:
  *                 type: number
+ *                 description: The quantity of the asset involved in the transaction.
  *               price_per_unit:
  *                 type: number
+ *                 description: The price per unit of the asset.
  *               transaction_amount:
  *                 type: number
+ *                 description: The total transaction amount.
+ *               transaction_time:
+ *                 type: string
+ *                 format: date-time
+ *                 description: The time of the transaction (default is the current time).
  *     responses:
  *       200:
  *         description: Asset updated successfully
