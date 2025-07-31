@@ -195,22 +195,21 @@
       background-color: #dc3545;
     }
 
-    /* MODIFIED: Adjusted grid layout */
+    /* MODIFIED: Adjusted grid layout from second file */
     .dashboard {
       display: grid;
       grid-template-columns: 1fr 2fr 1.2fr;
-      grid-template-rows: auto auto 1fr auto; /* Adjusted for new layout */
+      grid-template-rows: auto auto 1fr auto;
       gap: 30px;
     }
 
     #networth-card { grid-column: 1; grid-row: 1; }
     #stock-assets-card { grid-column: 1; grid-row: 2; }
-    /* #bond-card was here */
-    #cash-card { grid-column: 1; grid-row: 3; } /* Moved up */
+    #cash-card { grid-column: 1; grid-row: 3; }
     #stock-chart-card { grid-column: 2; grid-row: 1 / 3; }
     #market-watch-card { grid-column: 3; grid-row: 1 / 3; }
-    #portfolio-card { grid-column: 2 / 4; grid-row: 3; } /* Adjusted row span */
-    #history-card { grid-column: 1 / 4; grid-row: 4; } /* Moved up */
+    #portfolio-card { grid-column: 2 / 4; grid-row: 3; }
+    #history-card { grid-column: 1 / 4; grid-row: 4; }
 
     #portfolio-charts-container {
       display: flex;
@@ -221,17 +220,19 @@
       flex-grow: 1;
       gap: 20px;
     }
+    /* MODIFIED: Portfolio chart wrapper style from second file */
     .portfolio-chart-wrapper {
       flex: 1;
-      max-width: 48%; /* Adjusted for better spacing */
+      max-width: 48%;
       position: relative;
-      min-height: 300px; /* Ensure wrapper has height */
+      min-height: 300px;
     }
     .chart-container-large {
         flex-grow: 1;
         position: relative;
         min-height: 350px;
     }
+    /* MODIFIED: Combined canvas style from second file */
     .chart-container-large canvas, .portfolio-chart-wrapper canvas {
         position: absolute;
         top: 0;
@@ -327,6 +328,11 @@
         font-weight: bold;
         color: #555;
     }
+    #current-quantity-display {
+        font-size: 12px;
+        color: #555;
+        margin-left: 10px;
+    }
     .form-group input, .form-group select {
         width: 100%;
         padding: 10px;
@@ -399,10 +405,11 @@
     <div class="dashboard">
       <!-- Cards -->
       <div class="card" id="networth-card"><h2>Networth</h2><p>$37,150</p></div>
-      <div class="card" id="stock-assets-card"><h2>Stock</h2><div class="asset-list-container"><div class="asset-item"><span>AAPL</span><span>$4,450</span></div><div class="asset-item"><span>TSLA</span><span>$3,200</span></div><div class="asset-item"><span>GOOGL</span><span>$2,800</span></div><div class="asset-item"><span>MSFT</span><span>$2,150</span></div><div class="asset-item"><span>AMZN</span><span>$1,900</span></div></div><div class="card-actions"><button class="card-action-button">+ Buy</button><button class="card-action-button">- Sell</button></div></div>
-      <!-- REMOVED: Bond Card -->
+      <div class="card" id="stock-assets-card"><h2>Stock</h2><div class="asset-list-container"></div><div class="card-actions"><button class="card-action-button">+ Buy</button><button class="card-action-button">- Sell</button></div></div>
+      <!-- REMOVED: Bond Card was here -->
       <div class="card" id="cash-card"><h2>Cash</h2><div class="asset-list-container"><div class="asset-item"><span>USD Account</span><span>$3,800</span></div><div class="asset-item"><span>Money Market</span><span>$2,200</span></div><div class="asset-item"><span>EUR Account</span><span>$1,500</span></div><div class="asset-item"><span>GBP Account</span><span>$950</span></div><div class="asset-item"><span>CD #123</span><span>$3,000</span></div></div><div class="card-actions"><button class="card-action-button">+ Deposit</button><button class="card-action-button">- Withdraw</button></div></div>
       <div class="card" id="stock-chart-card"><h2>Stock</h2><div class="chart-container-large"><canvas id="stockChart"></canvas></div></div>
+      <!-- MODIFIED: Portfolio card content from second file -->
       <div class="card" id="portfolio-card">
         <h2>Portfolio</h2>
         <div id="portfolio-charts-container">
@@ -411,6 +418,7 @@
         </div>
       </div>
       <div class="card" id="market-watch-card"><h2>Market Watch</h2><div id="stock-list-container"></div><button class="refresh-button">Refresh</button><p class="timestamp">Last updated: Just now</p></div>
+      <!-- MODIFIED: History table header updated -->
       <div class="card" id="history-card"><h2>History</h2><table class="history-table"><thead><tr><th>Date</th><th>Assets-name</th><th>Type</th><th>Quantity</th><th>Amount</th></tr></thead><tbody></tbody></table><div id="history-pagination"><button id="prev-page-btn" class="pagination-button">Previous</button><span id="page-info"></span><button id="next-page-btn" class="pagination-button">Next</button></div></div>
     </div>
   </div>
@@ -420,7 +428,10 @@
       <span id="modal-close-btn" class="modal-close-btn">&times;</span>
       <h2 id="modal-title">Transaction</h2>
       <div class="form-group"><label for="asset-select" id="asset-select-label">Asset Name</label><select id="asset-select"></select></div>
-      <div class="form-group"><label for="quantity-input" id="quantity-input-label">Quantity</label><div class="quantity-control"><input type="number" id="quantity-input" value="1" min="1"><div class="quantity-arrows"><div class="quantity-arrow up" id="quantity-up-arrow">▲</div><div class="quantity-arrow down" id="quantity-down-arrow">▼</div></div></div></div>
+      <div class="form-group">
+        <label for="quantity-input" id="quantity-input-label">Quantity</label><span id="current-quantity-display" style="display: none;"></span>
+        <div class="quantity-control"><input type="number" id="quantity-input" value="1" min="1"><div class="quantity-arrows"><div class="quantity-arrow up" id="quantity-up-arrow">▲</div><div class="quantity-arrow down" id="quantity-down-arrow">▼</div></div></div>
+      </div>
       <div class="form-group"><label for="price-per-unit">Price per Unit</label><p id="price-per-unit">$0.00</p></div>
       <div class="modal-footer"><div id="total-amount-display">Total: <span>$0.00</span></div><button id="confirm-transaction-btn">Confirm</button></div>
     </div>
@@ -430,121 +441,99 @@
     // ===== Data and Rendering Functions =====
 
     let assetPriceMap = new Map();
-    let latestStockTickers = [];
-    let stockChartInstance = null; 
+    let ownedStockAssets = []; 
+    let stockChartInstance = null;
+    // ADDED: Chart instances from second file
     let totalAmountChartInstance = null;
     let interestRateChartInstance = null;
+    let historyData = [];
+    let currentPage = 1;
+    const itemsPerPage = 5;
 
-    /**
-     * Fetches historical data for a given stock ticker and updates the main stock chart.
-     * @param {string} ticker The stock symbol to fetch history for.
-     */
-    async function fetchAndDrawStockHistory(ticker) {
-        if (!stockChartInstance || !ticker) {
-            console.error("Chart instance or ticker not available.");
+    function renderStockAssets(assetsData) {
+        const container = document.querySelector('#stock-assets-card .asset-list-container');
+        if (!container) return;
+        container.innerHTML = ''; 
+        if (!assetsData || assetsData.length === 0) {
+            container.innerHTML = '<p>No stock assets found.</p>';
             return;
         }
+        assetsData.forEach(asset => {
+            const totalAmount = parseFloat(asset.total_amount);
+            const formattedAmount = totalAmount.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+            container.innerHTML += `<div class="asset-item"><span>${asset.asset_name}</span><span>${formattedAmount}</span></div>`;
+        });
+    }
 
-        const stockChartCardTitle = document.querySelector('#stock-chart-card h2');
-        if (stockChartCardTitle) {
-            stockChartCardTitle.textContent = `Stock: ${ticker} (Loading...)`;
-        }
-
-        const historyApiUrl = `http://localhost:3000/stockapi/history/${ticker}`;
-
+    async function fetchStockAssets() {
+        const container = document.querySelector('#stock-assets-card .asset-list-container');
+        const apiUrl = 'http://localhost:3000/assets/type/stock';
+        if (container) container.innerHTML = '<p>Loading assets...</p>';
         try {
-            const response = await fetch(historyApiUrl);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+            const response = await fetch(apiUrl);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const data = await response.json();
+            ownedStockAssets = data.map(asset => asset.asset_name); 
+            renderStockAssets(data);
+        } catch (error) {
+            console.error("Error fetching stock assets:", error);
+            if (container) container.innerHTML = `<p style="color: red;">Failed to load stock assets.</p>`;
+        }
+    }
+
+    async function fetchAndDrawStockHistory(ticker) {
+        if (!stockChartInstance || !ticker) return;
+        const stockChartCardTitle = document.querySelector('#stock-chart-card h2');
+        if (stockChartCardTitle) stockChartCardTitle.textContent = `Stock: ${ticker} (Loading...)`;
+        try {
+            const response = await fetch(`http://localhost:3000/stockapi/history/${ticker}`);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             const historyData = await response.json();
-
             const sampleData = historyData.length > 100 ? historyData.filter((_, i) => i % Math.floor(historyData.length / 100) === 0) : historyData;
-
-            const labels = sampleData.map(item =>
-                new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' })
-            );
+            const labels = sampleData.map(item => new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' }));
             const dataPoints = sampleData.map(item => item.close);
-
             stockChartInstance.data.labels = labels;
             stockChartInstance.data.datasets[0].data = dataPoints;
             stockChartInstance.data.datasets[0].label = `${ticker} Stock Value`;
             stockChartInstance.update();
-
-            if (stockChartCardTitle) {
-                stockChartCardTitle.textContent = `Stock: ${ticker}`;
-            }
-
+            if (stockChartCardTitle) stockChartCardTitle.textContent = `Stock: ${ticker}`;
         } catch (error) {
             console.error(`Error fetching history for ${ticker}:`, error);
-            if (stockChartCardTitle) {
-                stockChartCardTitle.textContent = `Stock: ${ticker} (Error loading chart)`;
-            }
-            stockChartInstance.data.labels = [];
-            stockChartInstance.data.datasets[0].data = [];
-            stockChartInstance.update();
+            if (stockChartCardTitle) stockChartCardTitle.textContent = `Stock: ${ticker} (Error loading chart)`;
         }
     }
 
-
-    /**
-     * Fetches market data from the local API.
-     */
     async function fetchMarketData() {
         const container = document.getElementById('stock-list-container');
         if (container) container.innerHTML = '<p>Loading market data...</p>';
-
-        const apiUrl = 'http://localhost:3000/stockapi/price/';
-
         try {
-            const response = await fetch(apiUrl);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+            const response = await fetch('http://localhost:3000/stockapi/price/');
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             const data = await response.json();
-            
-            const formattedData = data.map(stock => ({
-                code: stock.symbol,
-                price: stock.price,
-                changePercent: stock.percentChange 
-            }));
-
+            const formattedData = data.map(stock => ({ code: stock.symbol, price: stock.price, changePercent: stock.percentChange }));
             const newPriceMap = new Map();
             formattedData.forEach(stock => newPriceMap.set(stock.code, stock.price));
-
             if (formattedData.length > 0) {
                 renderStockList(formattedData);
-                latestStockTickers = formattedData.map(stock => stock.code);
                 assetPriceMap = new Map([...assetPriceMap, ...newPriceMap]);
-
-                const firstTicker = formattedData[0].code;
-                fetchAndDrawStockHistory(firstTicker);
-
+                if (!stockChartInstance.data.datasets[0].label || stockChartInstance.data.datasets[0].label === 'Stock Value') {
+                    fetchAndDrawStockHistory(formattedData[0].code);
+                }
             } else {
-                if (container) container.innerHTML = '<p style="color: red;">未能加载任何市场数据，请稍后重试。</p>';
+                if (container) container.innerHTML = '<p style="color: red;">Could not load any market data.</p>';
             }
             updateTimestamp();
-
         } catch (error) {
-            console.error("获取市场数据时发生错误:", error);
-            if (container) {
-                container.innerHTML = `<p style="color: red;">无法加载市场数据。请确保您的本地API服务正在运行。</p>`;
-            }
+            console.error("Error fetching market data:", error);
+            if (container) container.innerHTML = `<p style="color: red;">Could not load market data.</p>`;
         }
     }
 
-    /**
-     * Updates the timestamp in the Market Watch card.
-     */
     function updateTimestamp() {
         const timestampEl = document.querySelector('#market-watch-card .timestamp');
-        if (timestampEl) {
-            const now = new Date();
-            timestampEl.textContent = `Last updated at: ${now.toLocaleTimeString()}`;
-        }
+        if (timestampEl) timestampEl.textContent = `Last updated at: ${new Date().toLocaleTimeString()}`;
     }
 
-    // --- Market Watch Render ---
     function renderStockList(data) {
       const container = document.getElementById('stock-list-container');
       if (!container) return;
@@ -552,72 +541,23 @@
       data.forEach(stock => {
         const changeClass = stock.changePercent >= 0 ? 'positive' : 'negative';
         const changeSign = stock.changePercent >= 0 ? '+' : '';
-        const itemHTML = `
+        container.innerHTML += `
           <div class="stock-info-item">
             <div class="stock-details">
               <span class="code">${stock.code}</span>
               <span class="price">$${stock.price.toFixed(2)}</span>
             </div>
-            <div class="stock-change ${changeClass}">
-              ${changeSign}${stock.changePercent.toFixed(2)}%
-            </div>
-          </div>
-        `;
-        container.innerHTML += itemHTML;
+            <div class="stock-change ${changeClass}">${changeSign}${stock.changePercent.toFixed(2)}%</div>
+          </div>`;
       });
     }
 
-    // --- History Data & Pagination ---
-    const mockHistoryData = [
-        { date: '2024-02-05 09:15:00', name: 'JPM', type: 'Stock', quantity: 10, amount: 1950 },
-        { date: '2024-02-02 15:00:10', name: 'GBP Account', type: 'Cash', quantity: '-', amount: 1000 },
-        { date: '2024-02-01 10:30:15', name: 'AAPL', type: 'Stock', quantity: 17, amount: 3000 },
-        { date: '2024-01-28 14:05:50', name: 'US Treasury', type: 'Bond', quantity: 2, amount: 2000 },
-        { date: '2024-01-25 16:01:11', name: 'TSLA', type: 'Stock', quantity: 8, amount: -1500 },
-        { date: '2024-01-22 11:45:30', name: 'EUR Account', type: 'Cash', quantity: '-', amount: -500 },
-        { date: '2024-01-20 09:30:00', name: 'GOOGL', type: 'Stock', quantity: 15, amount: 2000 },
-        { date: '2024-01-15 12:00:18', name: 'Corp Bond A', type: 'Bond', quantity: 5, amount: -2500 },
-        { date: '2024-01-10 13:10:05', name: 'NVDA', type: 'Stock', quantity: 3, amount: 1200 },
-        { date: '2024-01-05 15:25:45', name: 'MSFT', type: 'Stock', quantity: 2, amount: -800 },
-        { date: '2023-12-28 10:05:00', name: 'AMZN', type: 'Stock', quantity: 10, amount: 2500 },
-        { date: '2023-12-22 09:00:00', name: 'USD Account', type: 'Cash', quantity: '-', amount: 5000 },
-        { date: '2023-12-18 11:15:21', name: 'High-Yield D', type: 'Bond', quantity: 12, amount: 1200 },
-        { date: '2023-12-15 14:20:00', name: 'Money Market', type: 'Cash', quantity: '-', amount: 2200 },
-        { date: '2023-12-12 10:00:00', name: 'V', type: 'Stock', quantity: 5, amount: -1375 },
-    ];
-    let currentPage = 1;
-    const itemsPerPage = 5;
-    const prevButton = document.getElementById('prev-page-btn');
-    const nextButton = document.getElementById('next-page-btn');
-    const pageInfoSpan = document.getElementById('page-info');
-    const historyTableBody = document.querySelector('#history-card tbody');
-
-    function displayPage() {
-        historyTableBody.innerHTML = '';
-        const totalPages = Math.ceil(mockHistoryData.length / itemsPerPage);
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const paginatedItems = mockHistoryData.slice(startIndex, startIndex + itemsPerPage);
-        
-        paginatedItems.forEach(item => {
-            const amountSign = item.amount >= 0 ? '+' : '-';
-            const amountClass = item.amount >= 0 ? 'amount-positive' : 'amount-negative';
-            const formattedAmount = `${amountSign}$${Math.abs(item.amount).toLocaleString()}`;
-            const row = `<tr><td>${item.date}</td><td>${item.name}</td><td>${item.type}</td><td>${item.quantity}</td><td class="${amountClass}">${formattedAmount}</td></tr>`;
-            historyTableBody.innerHTML += row;
-        });
-
-        pageInfoSpan.textContent = `Page ${currentPage} of ${totalPages}`;
-        prevButton.disabled = currentPage === 1;
-        nextButton.disabled = currentPage === totalPages;
-    }
-    
+    // ADDED: Portfolio charts function from second file
     async function fetchAndDrawPortfolioCharts() {
         const apiUrl = 'http://localhost:3000/assets/type/stock';
         try {
             const response = await fetch(apiUrl);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             const rawData = await response.json();
 
             const latestAssets = new Map();
@@ -635,9 +575,7 @@
 
             const ctxTotalAmount = document.getElementById('totalAmountChart');
             if (ctxTotalAmount) {
-                if (totalAmountChartInstance) {
-                    totalAmountChartInstance.destroy();
-                }
+                if (totalAmountChartInstance) totalAmountChartInstance.destroy();
                 totalAmountChartInstance = new Chart(ctxTotalAmount, {
                     type: 'bar',
                     data: {
@@ -651,43 +589,20 @@
                         }]
                     },
                     options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
+                        responsive: true, maintainAspectRatio: false,
                         plugins: {
                             legend: { display: false },
                             title: { display: true, text: 'Stock Portfolio by Total Amount' },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        let label = context.dataset.label || '';
-                                        if (label) { label += ': '; }
-                                        if (context.parsed.y !== null) {
-                                            label += '$' + context.parsed.y.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                                        }
-                                        return label;
-                                    }
-                                }
-                            }
+                            tooltip: { callbacks: { label: ctx => `$${ctx.parsed.y.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` } }
                         },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: {
-                                    callback: function(value) {
-                                        return '$' + (value / 1000) + 'k';
-                                    }
-                                }
-                            }
-                        }
+                        scales: { y: { beginAtZero: true, ticks: { callback: val => '$' + (val / 1000) + 'k' } } }
                     }
                 });
             }
 
             const ctxInterestRate = document.getElementById('interestRateChart');
             if (ctxInterestRate) {
-                 if (interestRateChartInstance) {
-                    interestRateChartInstance.destroy();
-                }
+                 if (interestRateChartInstance) interestRateChartInstance.destroy();
                 interestRateChartInstance = new Chart(ctxInterestRate, {
                     type: 'bar',
                     data: {
@@ -701,108 +616,101 @@
                         }]
                     },
                     options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
+                        responsive: true, maintainAspectRatio: false,
                         plugins: {
                             legend: { display: false },
                             title: { display: true, text: 'Stock Portfolio by Interest Rate' },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        let label = context.dataset.label || '';
-                                        if (label) { label += ': '; }
-                                        if (context.parsed.y !== null) {
-                                            label += (context.parsed.y * 100).toFixed(2) + '%';
-                                        }
-                                        return label;
-                                    }
-                                }
-                            }
+                            tooltip: { callbacks: { label: ctx => `${(ctx.parsed.y * 100).toFixed(2)}%` } }
                         },
-                        scales: {
-                            y: {
-                                ticks: {
-                                    callback: function(value) {
-                                        return (value * 100).toFixed(0) + '%';
-                                    }
-                                }
-                            }
-                        }
+                        scales: { y: { ticks: { callback: val => (val * 100).toFixed(0) + '%' } } }
                     }
                 });
             }
-
         } catch (error) {
             console.error("Error fetching or drawing portfolio charts:", error);
             const container = document.getElementById('portfolio-charts-container');
-            if (container) {
-                container.innerHTML = `<p style="color: red; text-align: center; width: 100%;">无法加载投资组合图表数据。</p>`;
-            }
+            if (container) container.innerHTML = `<p style="color: red; text-align: center; width: 100%;">Failed to load portfolio charts.</p>`;
+        }
+    }
+
+    // --- History Data & Pagination ---
+    function displayHistoryPage() {
+        const historyTableBody = document.querySelector('#history-card tbody');
+        const pageInfoSpan = document.getElementById('page-info');
+        const prevButton = document.getElementById('prev-page-btn');
+        const nextButton = document.getElementById('next-page-btn');
+        historyTableBody.innerHTML = '';
+        const totalPages = Math.ceil(historyData.length / itemsPerPage);
+        const startIndex = (currentPage - 1) * itemsPerPage;
+        const paginatedItems = historyData.slice(startIndex, startIndex + itemsPerPage);
+        paginatedItems.forEach(item => {
+            const operation = item.operation.toLowerCase();
+            const isNegative = ['sell', 'withdraw'].includes(operation);
+            const amountSign = isNegative ? '-' : '+';
+            const amountClass = isNegative ? 'amount-negative' : 'amount-positive';
+            const totalAmount = parseFloat(item.Amount);
+            const formattedAmount = `${amountSign}$${totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            // MODIFIED: Changed 'operation' to 'item.quantity' to match new table header
+            const row = `<tr>
+                <td>${new Date(item.Date).toLocaleString()}</td>
+                <td>${item['Asset name']}</td>
+                <td>${item.Type}</td>
+                <td>${item.quantity || 'N/A'}</td>
+                <td class="${amountClass}">${formattedAmount}</td>
+            </tr>`;
+            historyTableBody.innerHTML += row;
+        });
+        pageInfoSpan.textContent = `Page ${currentPage} of ${totalPages}`;
+        prevButton.disabled = currentPage === 1;
+        nextButton.disabled = currentPage === totalPages;
+    }
+    
+    async function fetchHistoryData() {
+        const historyTableBody = document.querySelector('#history-card tbody');
+        try {
+            const response = await fetch('http://localhost:3000/transactions');
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            historyData = await response.json();
+            currentPage = 1;
+            displayHistoryPage();
+        } catch (error) {
+            console.error("Error fetching transaction history:", error);
+            historyTableBody.innerHTML = `<tr><td colspan="5" style="color: red; text-align: center;">Failed to load transaction history.</td></tr>`;
         }
     }
 
     // ===== Main Execution on Page Load =====
     document.addEventListener('DOMContentLoaded', () => {
-        // --- Initial Page Renders ---
-        
         const ctx2 = document.getElementById('stockChart');
         if (ctx2) {
             stockChartInstance = new Chart(ctx2, {
-                type: 'line',
-                data: {
-                    labels: [],
-                    datasets: [{
-                        label: 'Stock Value',
-                        data: [],
-                        fill: true,
-                        backgroundColor: 'rgba(77, 166, 255, 0.1)',
-                        borderColor: '#0066ff',
-                        tension: 0.3
-                    }]
-                },
-                options: {
-                    scales: {
-                        y: { 
-                            beginAtZero: false
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    maintainAspectRatio: false
-                }
+                type: 'line', data: { labels: [], datasets: [{ label: 'Stock Value', data: [], fill: true, backgroundColor: 'rgba(77, 166, 255, 0.1)', borderColor: '#0066ff', tension: 0.3 }] },
+                options: { scales: { y: { beginAtZero: false } }, plugins: { legend: { display: false } }, maintainAspectRatio: false }
             });
         }
-
+        
+        fetchStockAssets();
         fetchMarketData();
+        fetchHistoryData();
+        // ADDED: Call to render new portfolio charts
         fetchAndDrawPortfolioCharts();
-        displayPage();
 
         // --- Event Listeners ---
-        prevButton.addEventListener('click', () => { if (currentPage > 1) { currentPage--; displayPage(); } });
-        nextButton.addEventListener('click', () => { if (currentPage < Math.ceil(mockHistoryData.length / itemsPerPage)) { currentPage++; displayPage(); } });
-        
-        const refreshButton = document.querySelector('#market-watch-card .refresh-button');
-        if (refreshButton) {
-            refreshButton.addEventListener('click', fetchMarketData);
-        }
+        const prevButton = document.getElementById('prev-page-btn');
+        const nextButton = document.getElementById('next-page-btn');
+        prevButton.addEventListener('click', () => { if (currentPage > 1) { currentPage--; displayHistoryPage(); } });
+        nextButton.addEventListener('click', () => { if (currentPage < Math.ceil(historyData.length / itemsPerPage)) { currentPage++; displayHistoryPage(); } });
 
-        const marketWatchContainer = document.getElementById('stock-list-container');
-        if (marketWatchContainer) {
-            marketWatchContainer.addEventListener('click', (event) => {
-                const stockItem = event.target.closest('.stock-info-item');
-                if (stockItem) {
-                    const ticker = stockItem.querySelector('.stock-details .code').textContent;
-                    if (ticker) {
-                        fetchAndDrawStockHistory(ticker);
-                    }
-                }
-            });
-        }
+        document.querySelector('#market-watch-card .refresh-button').addEventListener('click', fetchMarketData);
+        document.getElementById('stock-list-container').addEventListener('click', (event) => {
+            const stockItem = event.target.closest('.stock-info-item');
+            if (stockItem) {
+                const ticker = stockItem.querySelector('.stock-details .code').textContent;
+                if (ticker) fetchAndDrawStockHistory(ticker);
+            }
+        });
 
-        // --- Modal Logic ---
+        // --- Modal Logic (Kept from original, more functional file) ---
         const modal = document.getElementById('transaction-modal');
         const closeModalBtn = document.getElementById('modal-close-btn');
         const modalTitle = document.getElementById('modal-title');
@@ -811,34 +719,52 @@
         const priceDisplay = document.getElementById('price-per-unit');
         const totalDisplay = document.querySelector('#total-amount-display span');
         const confirmBtn = document.getElementById('confirm-transaction-btn');
-        const assetSelectLabel = document.getElementById('asset-select-label');
-        const quantityInputLabel = document.getElementById('quantity-input-label');
-
-        const getAssetDataFromCard = (cardId) => {
-            const card = document.getElementById(cardId);
-            if (!card) return [];
-            return Array.from(card.querySelectorAll('.asset-item')).map(item => {
-                const name = item.querySelector('span:first-child').textContent;
-                const valueText = item.querySelector('span:last-child').textContent.replace('$', '').replace(',', '');
-                return { name, value: parseFloat(valueText) };
-            });
-        };
+        const quantityDisplay = document.getElementById('current-quantity-display');
         
-        // Simulating bond and cash prices for the modal
-        assetPriceMap.set('US Treasury', 100);
-        assetPriceMap.set('Corp Bond A', 100);
-        assetPriceMap.set('Muni Bond B', 100);
-        assetPriceMap.set('Intl Bond C', 100);
-        assetPriceMap.set('High-Yield D', 100);
-        getAssetDataFromCard('cash-card').forEach(cash => assetPriceMap.set(cash.name, 1));
-
-        const updateCalculation = () => {
+        const calculateTotal = () => {
             const selectedAssetName = assetSelect.value;
             const price = assetPriceMap.get(selectedAssetName) || 0;
             const quantity = parseFloat(quantityInput.value) || 0;
             const total = price * quantity;
-            priceDisplay.textContent = `$${price.toFixed(2).toLocaleString()}`;
-            totalDisplay.textContent = `$${total.toFixed(2).toLocaleString()}`;
+            totalDisplay.textContent = `$${total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        };
+
+        const fetchAndUpdatePrice = async () => {
+            const selectedAssetName = assetSelect.value;
+            const isSellAction = modalTitle.textContent.includes('Sell');
+
+            quantityDisplay.style.display = 'none';
+            quantityInput.removeAttribute('max');
+
+            if (!selectedAssetName) {
+                priceDisplay.textContent = '$0.00';
+                calculateTotal();
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:3000/assets/${selectedAssetName}`);
+                if (!response.ok) throw new Error('Failed to fetch asset details');
+                
+                const assetDetails = await response.json();
+                const price = parseFloat(assetDetails.current_price_per_unit);
+                
+                assetPriceMap.set(selectedAssetName, price);
+                priceDisplay.textContent = `$${price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                
+                if (isSellAction) {
+                    const currentQuantity = parseFloat(assetDetails.current_quantity);
+                    quantityDisplay.textContent = `Holding: ${currentQuantity}`;
+                    quantityDisplay.style.display = 'inline';
+                    quantityInput.setAttribute('max', currentQuantity);
+                }
+
+            } catch (error) {
+                console.error(`Failed to fetch price for ${selectedAssetName}:`, error);
+                assetPriceMap.set(selectedAssetName, 0);
+                priceDisplay.textContent = '$0.00';
+            }
+            calculateTotal();
         };
 
         const openModal = (action, assetType) => {
@@ -846,14 +772,14 @@
             assetSelect.innerHTML = '';
             let assetList = [];
 
-            if (action === 'Sell' || action === 'Withdraw') {
-                 const cardId = assetType === 'Stock' ? 'stock-assets-card' : `${assetType.toLowerCase()}-card`;
-                 assetList = getAssetDataFromCard(cardId).map(a => a.name);
-            } else { 
-                if (assetType === 'Stock') assetList = latestStockTickers;
-                // Even if card is gone, keep logic for modal if needed elsewhere
-                if (assetType === 'Bond') assetList = ['US Treasury', 'Corp Bond A', 'Muni Bond B', 'Intl Bond C', 'High-Yield D'];
-                if (assetType === 'Cash') assetList = getAssetDataFromCard('cash-card').map(c => c.name);
+            // MODIFIED: Removed 'Bond' logic as the card is gone
+            if (assetType === 'Stock') {
+                assetList = ownedStockAssets;
+            }
+
+            if (assetList.length === 0 && assetType === 'Stock' && action === 'Sell') {
+                alert("You do not own any stocks to sell.");
+                return;
             }
 
             assetList.forEach(name => {
@@ -862,21 +788,63 @@
                 option.textContent = name;
                 assetSelect.appendChild(option);
             });
-
-            if (assetType === 'Cash') {
-                assetSelectLabel.textContent = 'Account Name';
-                quantityInputLabel.textContent = 'Amount';
-                quantityInput.value = 100;
-            } else {
-                assetSelectLabel.textContent = 'Asset Name';
-                quantityInputLabel.textContent = 'Quantity';
-                quantityInput.value = 1;
-            }
-            updateCalculation();
+            
+            quantityInput.value = 1;
             modal.classList.add('modal-visible');
+            fetchAndUpdatePrice();
         };
 
         const closeModal = () => modal.classList.remove('modal-visible');
+        
+        async function handleTransaction() {
+            const fullActionText = modalTitle.textContent;
+            const transaction_type = fullActionText.split(' ')[0].toLowerCase();
+            const asset_name = assetSelect.value;
+            const quantity = parseFloat(quantityInput.value);
+            const price_per_unit = assetPriceMap.get(asset_name) || 0;
+            
+            if (!asset_name || !quantity || quantity <= 0) {
+                alert("Invalid transaction details.");
+                return;
+            }
+             if (price_per_unit <= 0) {
+                alert("Could not determine the price for this asset. Please try again.");
+                return;
+            }
+
+            const body = {
+                asset_type: "stock",
+                transaction_type: transaction_type,
+                quantity: quantity,
+                price_per_unit: price_per_unit,
+                transaction_amount: quantity * price_per_unit
+            };
+
+            try {
+                const response = await fetch(`http://localhost:3000/assets/${asset_name}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+                }
+                
+                await response.json();
+                alert(`Success! Transaction completed.`);
+                closeModal();
+                // Refresh data on success
+                fetchStockAssets();
+                fetchHistoryData();
+                fetchAndDrawPortfolioCharts();
+
+            } catch (error) {
+                console.error('Transaction failed:', error);
+                alert(`Transaction failed: ${error.message}`);
+            }
+        }
 
         document.querySelectorAll('.card-action-button').forEach(button => {
             button.addEventListener('click', () => {
@@ -885,31 +853,30 @@
                 let action, assetType;
                 if (actionText.includes('Buy')) action = 'Buy';
                 if (actionText.includes('Sell')) action = 'Sell';
-                if (actionText.includes('Deposit')) action = 'Deposit';
-                if (actionText.includes('Withdraw')) action = 'Withdraw';
-                
                 if (card.id.includes('stock')) assetType = 'Stock';
-                // The 'bond-card' is removed, but we keep the logic in case it's triggered differently
-                if (card.id.includes('bond')) assetType = 'Bond'; 
-                if (card.id.includes('cash')) assetType = 'Cash';
-
-                if(assetType) { // Ensure assetType is defined before opening
-                    openModal(action, assetType);
-                }
+                if (card.id.includes('cash')) assetType = 'Cash'; // Kept for future use
+                // Bond logic is naturally removed as the card is gone
+                if(action && assetType === 'Stock') openModal(action, assetType);
             });
         });
 
         closeModalBtn.addEventListener('click', closeModal);
         modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
-        assetSelect.addEventListener('change', updateCalculation);
-        quantityInput.addEventListener('input', updateCalculation);
-        document.getElementById('quantity-up-arrow').addEventListener('click', () => { quantityInput.stepUp(); updateCalculation(); });
-        document.getElementById('quantity-down-arrow').addEventListener('click', () => { quantityInput.stepDown(); updateCalculation(); });
-        confirmBtn.addEventListener('click', () => {
-            console.log('Transaction Confirmed:', { action: modalTitle.textContent, asset: assetSelect.value, quantity: quantityInput.value, total: totalDisplay.textContent });
-            alert('Transaction details logged to console.');
-            closeModal();
+        
+        assetSelect.addEventListener('change', fetchAndUpdatePrice);
+
+        quantityInput.addEventListener('input', () => {
+            const max = parseFloat(quantityInput.max);
+            if (!isNaN(max) && parseFloat(quantityInput.value) > max) {
+                quantityInput.value = max;
+            }
+            calculateTotal();
         });
+
+        document.getElementById('quantity-up-arrow').addEventListener('click', () => { quantityInput.stepUp(); calculateTotal(); });
+        document.getElementById('quantity-down-arrow').addEventListener('click', () => { quantityInput.stepDown(); calculateTotal(); });
+        
+        confirmBtn.addEventListener('click', handleTransaction);
     });
   </script>
 </body>
