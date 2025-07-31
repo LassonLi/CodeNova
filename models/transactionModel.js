@@ -3,14 +3,25 @@ const {pool} = require('../config/db');
 
 const getTransactions = async () => {
   const conn = await pool.getConnection();
-  try {
-    const [rows] = await conn.query(
-      `SELECT * FROM transactions ORDER BY transaction_time DESC LIMIT 15`
-    );
-    return rows;
-  } finally {
-    conn.release();
-  }
+   try {
+      const [rows] = await conn.query(
+        `SELECT
+           t.transaction_time AS Date,
+           at.type_name AS 'Asset name',
+           a.asset_name AS Type,
+           t.quantity AS Amount,
+           tt.type_name AS operation
+         FROM transactions t
+         JOIN assets a ON t.asset_id = a.asset_id
+         JOIN asset_types at ON a.asset_type_id = at.asset_type_id
+         JOIN transaction_types tt ON t.transaction_type_id = tt.transaction_type_id
+         ORDER BY t.transaction_time DESC
+         LIMIT 15`
+      );
+      return rows;
+    } finally {
+      conn.release();
+    }
 };
 
 exports.getTransactionHistory = async () => {
