@@ -215,7 +215,6 @@
       background-color: #dc3545;
     }
 
-    /* MODIFIED: Adjusted grid layout from second file */
     .dashboard {
       display: grid;
       grid-template-columns: 1fr 2fr 1.2fr;
@@ -240,7 +239,7 @@
       flex-grow: 1;
       gap: 20px;
     }
-    /* MODIFIED: Portfolio chart wrapper style from second file */
+
     .portfolio-chart-wrapper {
       flex: 1;
       max-width: 48%;
@@ -252,7 +251,7 @@
         position: relative;
         min-height: 350px;
     }
-    /* MODIFIED: Combined canvas style from second file */
+
     .chart-container-large canvas, .portfolio-chart-wrapper canvas {
         position: absolute;
         top: 0;
@@ -428,10 +427,8 @@
       <!-- Cards -->
       <div class="card" id="networth-card"><h2>Networth</h2><p>Calculating...</p></div>
       <div class="card" id="stock-assets-card"><h2>Stock</h2><div class="asset-list-container"></div><div class="card-actions"><button class="card-action-button">+ Buy</button><button class="card-action-button">- Sell</button></div></div>
-      <!-- REMOVED: Bond Card was here -->
-      <div class="card" id="cash-card"><h2>Cash</h2><div class="asset-list-container"><div class="asset-item"><span>USD Account</span><span>$3,800</span></div><div class="asset-item"><span>Money Market</span><span>$2,200</span></div><div class="asset-item"><span>EUR Account</span><span>$1,500</span></div><div class="asset-item"><span>GBP Account</span><span>$950</span></div><div class="asset-item"><span>CD #123</span><span>$3,000</span></div></div><div class="card-actions"><button class="card-action-button">+ Deposit</button><button class="card-action-button">- Withdraw</button></div></div>
+      <div class="card" id="cash-card"><h2>Cash</h2><div class="asset-list-container"></div><div class="card-actions"><button class="card-action-button">+ Deposit</button><button class="card-action-button">- Withdraw</button></div></div>
       <div class="card" id="stock-chart-card"><h2>Stock</h2><div class="chart-container-large"><canvas id="stockChart"></canvas></div></div>
-      <!-- MODIFIED: Portfolio card content from second file -->
       <div class="card" id="portfolio-card">
         <h2>Portfolio</h2>
         <div id="portfolio-charts-container">
@@ -440,7 +437,6 @@
         </div>
       </div>
       <div class="card" id="market-watch-card"><h2>Market Watch</h2><div id="stock-list-container"></div><button class="refresh-button">Refresh</button><p class="timestamp">Last updated: Just now</p></div>
-      <!-- MODIFIED: History table header updated -->
       <div class="card" id="history-card"><h2>History</h2><table class="history-table"><thead><tr><th>Date</th><th>Assets-name</th><th>Type</th><th>Quantity</th><th>Amount</th></tr></thead><tbody></tbody></table><div id="history-pagination"><button id="prev-page-btn" class="pagination-button">Previous</button><span id="page-info"></span><button id="next-page-btn" class="pagination-button">Next</button></div></div>
     </div>
   </div>
@@ -454,7 +450,7 @@
         <label for="quantity-input" id="quantity-input-label">Quantity</label><span id="current-quantity-display" style="display: none;"></span>
         <div class="quantity-control"><input type="number" id="quantity-input" value="1" min="1"><div class="quantity-arrows"><div class="quantity-arrow up" id="quantity-up-arrow">▲</div><div class="quantity-arrow down" id="quantity-down-arrow">▼</div></div></div>
       </div>
-      <div class="form-group"><label for="price-per-unit">Price per Unit</label><p id="price-per-unit">$0.00</p></div>
+      <div class="form-group" id="price-per-unit-group"><label for="price-per-unit">Price per Unit</label><p id="price-per-unit">$0.00</p></div>
       <div class="modal-footer"><div id="total-amount-display">Total: <span>$0.00</span></div><button id="confirm-transaction-btn">Confirm</button></div>
     </div>
   </div>
@@ -463,16 +459,27 @@
     // ===== Data and Rendering Functions =====
 
     let assetPriceMap = new Map();
-    let ownedStockAssets = []; 
+    let ownedStockAssets = [];
+    let ownedCashAssets = []; 
     let stockChartInstance = null;
-    // ADDED: Chart instances from second file
     let totalAmountChartInstance = null;
     let interestRateChartInstance = null;
     let historyData = [];
     let currentPage = 1;
     const itemsPerPage = 5;
+    
+    const buyableStockList = [
+        'AAPL', 'MSFT', 'GOOG', 'GOOGL', 'META', 'AMZN', 'NVDA', 'TSLA', 'AMD', 'INTC',
+        'JPM', 'BAC', 'WFC', 'GS', 'MS', 'AXP',
+        'JNJ', 'PFE', 'MRK', 'UNH', 'LLY', 'ABT',
+        'PG', 'KO', 'PEP', 'MCD', 'SBUX', 'NKE', 'DIS', 'COST', 'WMT', 'HD',
+        'XOM', 'CVX', 'BP', 'TOT', 'COP', 'SLB',
+        'BA', 'GE', 'CAT', 'UPS', 'FDX', 'DE',
+        'NEE', 'DUK', 'SO', 'AEP', 'EXC',
+        'BABA', 'TM', 'NSANY', 'TCEHY', 'RY', 'TD',
+        'SPY', 'QQQ', 'ARKK', 'VTI', 'IWM', 'DIA'
+    ];
 
-    // ===== NEW FUNCTION: Calculate and Display Net Worth =====
     async function fetchAndCalculateNetWorth() {
         const networthElement = document.querySelector('#networth-card p');
         if (!networthElement) return;
@@ -482,7 +489,6 @@
         const cashApiUrl = 'http://localhost:3000/assets/type/cash';
 
         try {
-            // Fetch both APIs at the same time
             const [stockResponse, cashResponse] = await Promise.all([
                 fetch(stockApiUrl),
                 fetch(cashApiUrl)
@@ -495,18 +501,15 @@
             const stockData = await stockResponse.json();
             const cashData = await cashResponse.json();
 
-            // Helper function to get the sum of the most recent version of each asset
             const getLatestTotalAmount = (data) => {
                 const latestAssets = new Map();
                 data.forEach(asset => {
                     const existing = latestAssets.get(asset.asset_name);
-                    // If asset is not in map, or the current one is newer, update it
                     if (!existing || new Date(asset.updated_at) > new Date(existing.updated_at)) {
                         latestAssets.set(asset.asset_name, asset);
                     }
                 });
 
-                // Sum the total_amount from the latest assets
                 let total = 0;
                 for (const asset of latestAssets.values()) {
                     total += parseFloat(asset.total_amount) || 0;
@@ -518,7 +521,6 @@
             const cashAmount = getLatestTotalAmount(cashData);
             const netWorth = stockAmount + cashAmount;
 
-            // Update the UI with the formatted total
             networthElement.textContent = netWorth.toLocaleString('en-US', {
                 style: 'currency',
                 currency: 'USD'
@@ -529,7 +531,6 @@
             networthElement.textContent = 'Error';
         }
     }
-
 
     function renderStockAssets(assetsData) {
         const container = document.querySelector('#stock-assets-card .asset-list-container');
@@ -542,9 +543,43 @@
         assetsData.forEach(asset => {
             const totalAmount = parseFloat(asset.total_amount);
             const formattedAmount = totalAmount.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+            
+            // Extract, format, and style the interest rate
+            const interestRate = parseFloat(asset.interest_rate) || 0;
+            const rateClass = interestRate >= 0 ? 'positive' : 'negative';
+            const rateSign = interestRate >= 0 ? '+' : '';
+            const formattedRate = `${rateSign}${(interestRate * 100).toFixed(2)}%`;
+
+            // Add the new rate display next to the total amount
+            container.innerHTML += `
+                <div class="asset-item">
+                    <span>${asset.asset_name}</span>
+                    <span style="display: inline-flex; align-items: center;">
+                        <span class="stock-change ${rateClass}" style="margin-right: 15px; padding: 3px 6px; font-size: 14px;">${formattedRate}</span>
+                        <span style="font-weight: bold;">${formattedAmount}</span>
+                    </span>
+                </div>`;
+        });
+    }
+
+    // ===== MODIFIED SECTION START =====
+    // This function is updated to remove the interest rate display from the cash section.
+    function renderCashAssets(assetsData) {
+        const container = document.querySelector('#cash-card .asset-list-container');
+        if (!container) return; 
+        container.innerHTML = ''; 
+        if (!assetsData || assetsData.length === 0) {
+            container.innerHTML = '<p>No cash assets found.</p>'; 
+            return;
+        }
+        assetsData.forEach(asset => {
+            const totalAmount = parseFloat(asset.total_amount); 
+            const formattedAmount = totalAmount.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
+            // The HTML is reverted to not show the interest rate for cash assets.
             container.innerHTML += `<div class="asset-item"><span>${asset.asset_name}</span><span>${formattedAmount}</span></div>`;
         });
     }
+    // ===== MODIFIED SECTION END =====
 
     async function fetchStockAssets() {
         const container = document.querySelector('#stock-assets-card .asset-list-container');
@@ -554,11 +589,38 @@
             const response = await fetch(apiUrl);
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             const data = await response.json();
-            ownedStockAssets = data.map(asset => asset.asset_name); 
-            renderStockAssets(data);
+            
+            const uniqueAssetNames = new Set(data.map(asset => asset.asset_name));
+            ownedStockAssets = Array.from(uniqueAssetNames);
+
+            const latestAssets = new Map();
+            data.forEach(asset => {
+                const existing = latestAssets.get(asset.asset_name);
+                if (!existing || new Date(asset.updated_at) > new Date(existing.updated_at)) {
+                    latestAssets.set(asset.asset_name, asset);
+                }
+            });
+            renderStockAssets(Array.from(latestAssets.values()));
+
         } catch (error) {
             console.error("Error fetching stock assets:", error);
             if (container) container.innerHTML = `<p style="color: red;">Failed to load stock assets.</p>`;
+        }
+    }
+
+    async function fetchCashAssets() {
+        const container = document.querySelector('#cash-card .asset-list-container');
+        const apiUrl = 'http://localhost:3000/assets/type/cash';
+        if (container) container.innerHTML = '<p>Loading assets...</p>'; 
+        try {
+            const response = await fetch(apiUrl); 
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`); 
+            const data = await response.json();
+            ownedCashAssets = data.map(asset => asset.asset_name);
+            renderCashAssets(data); 
+        } catch (error) {
+            console.error("Error fetching cash assets:", error);
+            if (container) container.innerHTML = `<p style="color: red;">Failed to load cash assets.</p>`;
         }
     }
 
@@ -597,9 +659,7 @@
             if (formattedData.length > 0) {
                 renderStockList(formattedData);
                 assetPriceMap = new Map([...assetPriceMap, ...newPriceMap]);
-                if (!stockChartInstance.data.datasets[0].label || stockChartInstance.data.datasets[0].label === 'Stock Value') {
-                    fetchAndDrawStockHistory(formattedData[0].code);
-                }
+                fetchAndDrawStockHistory(formattedData[0].code);
             } else {
                 if (container) container.innerHTML = '<p style="color: red;">Could not load any market data.</p>';
             }
@@ -633,7 +693,6 @@
       });
     }
 
-    // ADDED: Portfolio charts function from second file
     async function fetchAndDrawPortfolioCharts() {
         const apiUrl = 'http://localhost:3000/assets/type/stock';
         try {
@@ -714,7 +773,6 @@
         }
     }
 
-    // --- History Data & Pagination ---
     function displayHistoryPage() {
         const historyTableBody = document.querySelector('#history-card tbody');
         const pageInfoSpan = document.getElementById('page-info');
@@ -723,7 +781,7 @@
         historyTableBody.innerHTML = '';
 
         if (!historyData || historyData.length === 0) {
-            historyTableBody.innerHTML = `<tr><td colspan="5" style="color: red; text-align: center;">No transaction history found.</td></tr>`;
+            historyTableBody.innerHTML = `<tr><td colspan="5" style="text-align: center;">No transaction history found.</td></tr>`;
             pageInfoSpan.textContent = 'Page 0 of 0';
             prevButton.disabled = true;
             nextButton.disabled = true;
@@ -733,38 +791,43 @@
         const totalPages = Math.ceil(historyData.length / itemsPerPage);
         const startIndex = (currentPage - 1) * itemsPerPage;
         const paginatedItems = historyData.slice(startIndex, startIndex + itemsPerPage);
-
+        
         paginatedItems.forEach(item => {
-            // Use 'Operation' (capital 'O') from the new API response
             const operation = item.Operation.toLowerCase();
             const isNegative = ['sell', 'withdraw'].includes(operation);
+            
             const amountSign = isNegative ? '-' : '+';
             const amountClass = isNegative ? 'amount-negative' : 'amount-positive';
+            
+            const quantity = parseFloat(item.Quantity);
+            let amountForDisplay;
 
-            // Use 'Amount' (capital 'A')
-            const totalAmount = parseFloat(item.Amount);
-            const formattedAmount = `${amountSign}$${totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            if (operation === 'deposit' || operation === 'withdraw') {
+                amountForDisplay = quantity;
+            } else {
+                amountForDisplay = parseFloat(item.Amount);
+            }
+            
+            const formattedAmount = `${amountSign}$${amountForDisplay.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            
+            const assetName = item.Type;
+            const transactionType = item.Operation.charAt(0).toUpperCase() + item.Operation.slice(1);
 
-            // Use 'Quantity' (capital 'Q') and format it to 2 decimal places for better readability
-            const formattedQuantity = parseFloat(item.Quantity).toFixed(2);
-
-            // Construct the row using the correct field names from the API response
             const row = `<tr>
                 <td>${new Date(item.Date).toLocaleString()}</td>
-                <td>${item['Asset name']}</td>
-                <td>${item.Type}</td>
-                <td>${formattedQuantity}</td>
+                <td>${assetName}</td>
+                <td>${transactionType}</td>
+                <td>${quantity}</td>
                 <td class="${amountClass}">${formattedAmount}</td>
             </tr>`;
             historyTableBody.innerHTML += row;
         });
-
+        
         pageInfoSpan.textContent = `Page ${currentPage} of ${totalPages}`;
         prevButton.disabled = currentPage === 1;
         nextButton.disabled = currentPage === totalPages;
     }
-    // ===== MODIFICATION END =====
-
+    
     async function fetchHistoryData() {
         const historyTableBody = document.querySelector('#history-card tbody');
         try {
@@ -789,15 +852,13 @@
             });
         }
         
-        // --- Call all data fetching functions ---
-        fetchAndCalculateNetWorth(); // ADDED: Calculate net worth on load
+        fetchAndCalculateNetWorth();
         fetchStockAssets();
+        fetchCashAssets();
         fetchMarketData();
         fetchHistoryData();
-        // ADDED: Call to render new portfolio charts
         fetchAndDrawPortfolioCharts();
 
-        // --- Event Listeners ---
         const prevButton = document.getElementById('prev-page-btn');
         const nextButton = document.getElementById('next-page-btn');
         prevButton.addEventListener('click', () => { if (currentPage > 1) { currentPage--; displayHistoryPage(); } });
@@ -812,18 +873,21 @@
             }
         });
 
-        // --- Modal Logic (Kept from original, more functional file) ---
+        // --- Modal Logic ---
         const modal = document.getElementById('transaction-modal');
         const closeModalBtn = document.getElementById('modal-close-btn');
         const modalTitle = document.getElementById('modal-title');
         const assetSelect = document.getElementById('asset-select');
+        const assetSelectLabel = document.getElementById('asset-select-label');
         const quantityInput = document.getElementById('quantity-input');
+        const quantityInputLabel = document.getElementById('quantity-input-label');
+        const priceGroup = document.getElementById('price-per-unit-group');
         const priceDisplay = document.getElementById('price-per-unit');
         const totalDisplay = document.querySelector('#total-amount-display span');
         const confirmBtn = document.getElementById('confirm-transaction-btn');
         const quantityDisplay = document.getElementById('current-quantity-display');
         
-        const calculateTotal = () => {
+        const calculateStockTotal = () => {
             const selectedAssetName = assetSelect.value;
             const price = assetPriceMap.get(selectedAssetName) || 0;
             const quantity = parseFloat(quantityInput.value) || 0;
@@ -831,42 +895,76 @@
             totalDisplay.textContent = `$${total.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         };
 
-        const fetchAndUpdatePrice = async () => {
+        const fetchAndUpdateStockPrice = async () => {
             const selectedAssetName = assetSelect.value;
             const isSellAction = modalTitle.textContent.includes('Sell');
-
+            
             quantityDisplay.style.display = 'none';
             quantityInput.removeAttribute('max');
+            priceDisplay.textContent = 'Fetching...';
 
             if (!selectedAssetName) {
                 priceDisplay.textContent = '$0.00';
-                calculateTotal();
+                calculateStockTotal();
                 return;
             }
 
             try {
-                const response = await fetch(`http://localhost:3000/assets/${selectedAssetName}`);
-                if (!response.ok) throw new Error('Failed to fetch asset details');
-                
-                const assetDetails = await response.json();
-                const price = parseFloat(assetDetails.current_price_per_unit);
-                
-                assetPriceMap.set(selectedAssetName, price);
-                priceDisplay.textContent = `$${price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-                
-                if (isSellAction) {
+                let price = 0;
+                if (modalTitle.textContent.includes('Buy')) {
+                    const response = await fetch(`http://localhost:3000/stockApi/price/${selectedAssetName}`);
+                    if (!response.ok) throw new Error('Failed to fetch stock price from market API');
+                    const stockData = await response.json();
+                    price = parseFloat(stockData.price);
+                } 
+                else if (isSellAction) {
+                    const response = await fetch(`http://localhost:3000/assets/${selectedAssetName}`);
+                    if (!response.ok) throw new Error('Failed to fetch owned asset details');
+                    const assetDetails = await response.json();
+                    price = parseFloat(assetDetails.current_price_per_unit);
+                    
                     const currentQuantity = parseFloat(assetDetails.current_quantity);
                     quantityDisplay.textContent = `Holding: ${currentQuantity}`;
                     quantityDisplay.style.display = 'inline';
                     quantityInput.setAttribute('max', currentQuantity);
                 }
 
+                assetPriceMap.set(selectedAssetName, price);
+                priceDisplay.textContent = `$${price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
             } catch (error) {
                 console.error(`Failed to fetch price for ${selectedAssetName}:`, error);
                 assetPriceMap.set(selectedAssetName, 0);
-                priceDisplay.textContent = '$0.00';
+                priceDisplay.textContent = 'Error';
             }
-            calculateTotal();
+            calculateStockTotal();
+        };
+
+        const fetchAndUpdateCashDetails = async () => {
+            const selectedAccount = assetSelect.value;
+            quantityDisplay.textContent = 'Fetching...';
+            quantityDisplay.style.display = 'inline';
+            quantityInput.removeAttribute('max');
+
+            if (!selectedAccount) {
+                quantityDisplay.style.display = 'none';
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:3000/assets/${selectedAccount}`);
+                if (!response.ok) throw new Error('Failed to fetch cash account details');
+                const accountData = await response.json();
+                const totalAmount = parseFloat(accountData.total_amount);
+
+                quantityDisplay.textContent = `Current Balance: ${totalAmount.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}`;
+                
+                if (modalTitle.textContent.includes('Withdraw')) {
+                    quantityInput.setAttribute('max', totalAmount);
+                }
+            } catch (error) {
+                console.error(`Error fetching details for ${selectedAccount}:`, error);
+                quantityDisplay.textContent = 'Error loading balance.';
+            }
         };
 
         const openModal = (action, assetType) => {
@@ -874,56 +972,99 @@
             assetSelect.innerHTML = '';
             let assetList = [];
 
-            if (assetType === 'Stock') {
-                if (action === 'Sell') {
-                    assetList = ownedStockAssets;
-                } else { // For 'Buy', use the list from market watch
-                    assetList = Array.from(assetPriceMap.keys());
-                }
-            }
-
-            if (assetList.length === 0 && assetType === 'Stock' && action === 'Sell') {
-                alert("You do not own any stocks to sell.");
-                return;
-            }
-
-            assetList.forEach(name => {
-                const option = document.createElement('option');
-                option.value = name;
-                option.textContent = name;
-                assetSelect.appendChild(option);
-            });
-            
             quantityInput.value = 1;
+            totalDisplay.textContent = '$0.00';
+            quantityDisplay.style.display = 'none';
+            
+            if (assetType === 'Stock') {
+                assetSelectLabel.textContent = 'Asset Name';
+                quantityInputLabel.textContent = 'Quantity';
+                priceGroup.style.display = 'block';
+                assetList = (action === 'Buy') ? buyableStockList : ownedStockAssets;
+                
+                if (assetList.length === 0) {
+                    alert(action === 'Buy' ? "Stock list for buying is not available." : "You do not own any stocks to sell.");
+                    return;
+                }
+                
+                assetList.forEach(name => {
+                    const option = document.createElement('option');
+                    option.value = name;
+                    option.textContent = name;
+                    assetSelect.appendChild(option);
+                });
+                
+                fetchAndUpdateStockPrice();
+
+            } else if (assetType === 'Cash') {
+                assetSelectLabel.textContent = 'Account';
+                quantityInputLabel.textContent = 'Amount';
+                priceGroup.style.display = 'none'; 
+                assetList = ownedCashAssets;
+
+                if (assetList.length === 0) {
+                    alert("No cash accounts available for this transaction.");
+                    return;
+                }
+
+                assetList.forEach(name => {
+                    const option = document.createElement('option');
+                    option.value = name;
+                    option.textContent = name;
+                    assetSelect.appendChild(option);
+                });
+                
+                totalDisplay.textContent = `$${parseFloat(quantityInput.value).toFixed(2)}`;
+                fetchAndUpdateCashDetails();
+            }
+
             modal.classList.add('modal-visible');
-            fetchAndUpdatePrice();
         };
 
         const closeModal = () => modal.classList.remove('modal-visible');
         
         async function handleTransaction() {
             const fullActionText = modalTitle.textContent;
-            const transaction_type = fullActionText.split(' ')[0].toLowerCase();
+            const [transaction_type, asset_type_str] = fullActionText.toLowerCase().split(' ');
             const asset_name = assetSelect.value;
-            const quantity = parseFloat(quantityInput.value);
-            const price_per_unit = assetPriceMap.get(asset_name) || 0;
-            
-            if (!asset_name || !quantity || quantity <= 0) {
-                alert("Invalid transaction details.");
-                return;
-            }
-             if (price_per_unit <= 0) {
-                alert("Could not determine the price for this asset. Please try again.");
-                return;
-            }
+            let body = {};
 
-            const body = {
-                asset_type: "stock",
-                transaction_type: transaction_type,
-                quantity: quantity,
-                price_per_unit: price_per_unit,
-                transaction_amount: quantity * price_per_unit
-            };
+            if (asset_type_str === 'stock') {
+                const quantity = parseFloat(quantityInput.value);
+                const price_per_unit = assetPriceMap.get(asset_name) || 0;
+                
+                if (!asset_name || !quantity || quantity <= 0) {
+                    alert("Invalid transaction details. Please check asset and quantity.");
+                    return;
+                }
+                if (price_per_unit <= 0) {
+                    alert("Could not determine the price. Please refresh and try again.");
+                    return;
+                }
+                
+                body = {
+                    asset_type: "stock",
+                    transaction_type: transaction_type,
+                    quantity: quantity,
+                    price_per_unit: price_per_unit,
+                    transaction_amount: quantity * price_per_unit
+                };
+
+            } else if (asset_type_str === 'cash') {
+                const transaction_amount = parseFloat(quantityInput.value);
+                if (!asset_name || !transaction_amount || transaction_amount <= 0) {
+                    alert("Invalid transaction details. Please select an account and enter a valid amount.");
+                    return;
+                }
+
+                body = {
+                    asset_type: "cash",
+                    transaction_type: transaction_type,
+                    quantity: transaction_amount, 
+                    price_per_unit: 1,
+                    transaction_amount: transaction_amount
+                };
+            }
 
             try {
                 const response = await fetch(`http://localhost:3000/assets/${asset_name}`, {
@@ -940,9 +1081,10 @@
                 await response.json();
                 alert(`Success! Transaction completed.`);
                 closeModal();
-                // Refresh all relevant data on success
-                fetchAndCalculateNetWorth(); // ADDED: Recalculate net worth after transaction
+                
+                fetchAndCalculateNetWorth();
                 fetchStockAssets();
+                fetchCashAssets(); 
                 fetchHistoryData();
                 fetchAndDrawPortfolioCharts();
 
@@ -957,29 +1099,48 @@
                 const actionText = button.textContent;
                 const card = button.closest('.card');
                 let action, assetType;
+
                 if (actionText.includes('Buy')) action = 'Buy';
-                if (actionText.includes('Sell')) action = 'Sell';
+                else if (actionText.includes('Sell')) action = 'Sell';
+                else if (actionText.includes('Deposit')) action = 'Deposit';
+                else if (actionText.includes('Withdraw')) action = 'Withdraw';
+
                 if (card.id.includes('stock')) assetType = 'Stock';
-                if (card.id.includes('cash')) assetType = 'Cash';
-                if(action && assetType === 'Stock') openModal(action, assetType);
+                else if (card.id.includes('cash')) assetType = 'Cash'; 
+                
+                if(action && assetType) {
+                    openModal(action, assetType);
+                }
             });
         });
 
         closeModalBtn.addEventListener('click', closeModal);
         modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
         
-        assetSelect.addEventListener('change', fetchAndUpdatePrice);
+        assetSelect.addEventListener('change', () => {
+            if (modalTitle.textContent.includes('Stock')) {
+                fetchAndUpdateStockPrice();
+            } else if (modalTitle.textContent.includes('Cash')) {
+                fetchAndUpdateCashDetails();
+            }
+        });
 
         quantityInput.addEventListener('input', () => {
-            const max = parseFloat(quantityInput.max);
+            const max = parseFloat(quantityInput.getAttribute('max'));
             if (!isNaN(max) && parseFloat(quantityInput.value) > max) {
                 quantityInput.value = max;
             }
-            calculateTotal();
+
+            if (modalTitle.textContent.includes('Stock')) {
+                calculateStockTotal();
+            } else if (modalTitle.textContent.includes('Cash')) {
+                const amount = parseFloat(quantityInput.value) || 0;
+                totalDisplay.textContent = `$${amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            }
         });
 
-        document.getElementById('quantity-up-arrow').addEventListener('click', () => { quantityInput.stepUp(); calculateTotal(); });
-        document.getElementById('quantity-down-arrow').addEventListener('click', () => { quantityInput.stepDown(); calculateTotal(); });
+        document.getElementById('quantity-up-arrow').addEventListener('click', () => { quantityInput.stepUp(); quantityInput.dispatchEvent(new Event('input')); });
+        document.getElementById('quantity-down-arrow').addEventListener('click', () => { quantityInput.stepDown(); quantityInput.dispatchEvent(new Event('input')); });
         
         confirmBtn.addEventListener('click', handleTransaction);
     });
